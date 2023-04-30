@@ -1,6 +1,7 @@
 package com.example.appv2.ui.home
 
 import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.widget.*
@@ -25,7 +26,10 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+
 import java.io.File
+
 
 class HomeFragment : Fragment() {
     private lateinit var editTextMessage: EditText
@@ -39,10 +43,6 @@ class HomeFragment : Fragment() {
     private val messagesList = mutableListOf<Message>()
     private lateinit var buttonGetVoices: Button
 
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
-    //private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -146,6 +146,36 @@ class HomeFragment : Fragment() {
         return root
     }
 
+    private fun saveMessagesList(messagesList: List<Message>) {
+        val sharedPreferences = requireActivity().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val gson = Gson()
+        val json = gson.toJson(messagesList)
+        editor.putString("messagesList", json)
+        editor.apply()
+    }
+
+    private fun loadMessagesList(): MutableList<Message> {
+        val sharedPreferences = requireActivity().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val gson = Gson()
+        val json = sharedPreferences.getString("messagesList", null)
+        return if (json == null) {
+            mutableListOf()
+        } else {
+            gson.fromJson(json, object : TypeToken<MutableList<Message>>() {}.type)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        saveMessagesList(messagesList)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        messagesList.addAll(loadMessagesList())
+    }
+
     private fun showChangeSystemMessageDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_change_system_message, null)
 
@@ -166,7 +196,6 @@ class HomeFragment : Fragment() {
         alertDialog.show()
     }
 
-
     private fun submitMessage() {
         val message = editTextMessage.text.toString().trim()
         if (message.isNotEmpty()) {
@@ -183,6 +212,10 @@ class HomeFragment : Fragment() {
                         val reply = response.choices.firstOrNull()?.message?.content?.trim()
                         reply?.let {
                             addMessageToChatContainer(it, false)
+                            // Add the previous system response, if available
+                            val lastSystemResponse = Message("system",reply)
+                            messagesList.add(lastSystemResponse)
+
                             // Add this code inside the submitMessage() function, right after the line `addMessageToChatContainer(it, false)`
                             val voiceName = spinnerVoice.selectedItem.toString().split(":")[1].trim()
                             val narrateApiKey = sharedViewModel.elevenLabsApiKey.value ?: "a4d7726f7a83a1942e92ce4c0a283be9"
@@ -197,6 +230,9 @@ class HomeFragment : Fragment() {
                         val reply = response.choices.firstOrNull()?.message?.content?.trim()
                         reply?.let {
                             addMessageToChatContainer(it, false)
+                            // Add the previous system response, if available
+                            val lastSystemResponse = Message("system",reply)
+                            messagesList.add(lastSystemResponse)
                             // Add this code inside the submitMessage() function, right after the line `addMessageToChatContainer(it, false)`
                             val voiceName = spinnerVoice.selectedItem.toString().split(":")[1].trim()
                             val narrateApiKey = sharedViewModel.elevenLabsApiKey.value ?: "a4d7726f7a83a1942e92ce4c0a283be9"
@@ -285,6 +321,7 @@ class HomeFragment : Fragment() {
 
     fun clearChat() {
         chatContainer.removeAllViews()
+        messagesList.clear()
     }
 
     private val okHttpClient = OkHttpClient.Builder()
@@ -305,16 +342,17 @@ class HomeFragment : Fragment() {
     private suspend fun fetchChatGptResponse(message: String, apiKey: String): ChatGptResponse? {
         // Add the user message to the message list
         messagesList.add(Message(role = "user", content = message))
+
         val requestBody = ChatGptRequest(
             model = "gpt-3.5-turbo",
             messages = listOf(
-                Message(role = "system", content = sharedViewModel.systemMessageContent.value + ".Please only answer the latest message in the conversation." ?: "You are ChatGPT, a large language model. Please only answer the latest message in the conversation.")
-            ) + messagesList // Add the message list to the request
-
+                Message(role = "system", content = (sharedViewModel.systemMessageContent.value ?: "You are ChatGPT, a large language model") + ".Please only answer the latest message in the conversation.")
+            )   + messagesList // Add the message list to the request
         )
 
         return try {
             val response = chatGptService.generateChatGptResponse(requestBody, "Bearer $apiKey")
+
             if (response.isSuccessful) {
                 Log.d("HomeFragment","Success, ${response.body()}")
                 Log.d("HomeFragment","code: ${response.code()}, errorBody: ${response.errorBody()}")

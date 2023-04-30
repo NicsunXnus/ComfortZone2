@@ -1,5 +1,6 @@
 package com.example.appv2.ui.gallery
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -42,13 +43,6 @@ class GalleryFragment : Fragment() {
         _binding = FragmentGalleryBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        //val editTextGallery: EditText = binding.editTextGallery
-
-        //Remove?
-        galleryViewModel.text.observe(viewLifecycleOwner) {
-            //editTextGallery.text = it
-        }
-
         val openAIEditText: EditText = binding.editOpenaiApiKey
         val elevenLabEditText: EditText = binding.editElevenlabApiKey
 
@@ -64,16 +58,33 @@ class GalleryFragment : Fragment() {
         val submitElevenLabButton: Button = binding.buttonSubmitElevenlabApiKey
         val openAIKeyTextView: TextView = binding.textViewOpenaiApiKey
         val elevenLabKeyTextView: TextView = binding.textViewElevenlabApiKey
+
+        val sharedPreferences = requireActivity().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val openAIKey = sharedPreferences.getString("openai_api_key", "")
+        val elevenLabKey = sharedPreferences.getString("elevenlab_api_key", "")
+
+        if (!openAIKey.isNullOrEmpty()) {
+            openAIKeyTextView.text = "OpenAI API Key: $openAIKey"
+            passOpenAIKey(openAIKey)
+        }
+
+        if (!elevenLabKey.isNullOrEmpty()) {
+            elevenLabKeyTextView.text = "ElevenLab API Key: $elevenLabKey"
+            passElevenLabKey(elevenLabKey)
+        }
+
         submitOpenAIButton.setOnClickListener {
             val openAIKey = binding.editOpenaiApiKey.text.toString()
             passOpenAIKey(openAIKey)
             openAIKeyTextView.text = "OpenAI API Key: $openAIKey"
+            saveApiKeyToSharedPreferences("openai_api_key", openAIKey)
         }
 
         submitElevenLabButton.setOnClickListener {
             val elevenLabKey = binding.editElevenlabApiKey.text.toString()
             passElevenLabKey(elevenLabKey)
             elevenLabKeyTextView.text = "ElevenLab API Key: $elevenLabKey"
+            saveApiKeyToSharedPreferences("elevenlab_api_key", elevenLabKey)
         }
 
 
@@ -124,6 +135,14 @@ class GalleryFragment : Fragment() {
         // Use the ElevenLab API key here or pass it to another part of your app
         sharedViewModel.setElevenLabsAIKey(elevenLabKey)
     }
+
+    private fun saveApiKeyToSharedPreferences(keyName: String, apiKey: String) {
+        val sharedPreferences = requireActivity().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString(keyName, apiKey)
+        editor.apply()
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

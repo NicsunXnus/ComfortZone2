@@ -8,7 +8,6 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -25,9 +24,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        //setThemeFromPreference()
         super.onCreate(savedInstanceState)
-        //setThemeFromPreference()
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -45,6 +42,7 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+        loadProfilePictureSelection()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -68,6 +66,16 @@ class MainActivity : AppCompatActivity() {
         val editor = sharedPreferences.edit()
         editor.putString("profile_picture", pictureName)
         editor.apply()
+    }
+
+    private fun loadProfilePictureSelection() {
+        val sharedPreferences = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val pictureName = sharedPreferences.getString("profile_picture", null)
+        if (pictureName != null) {
+            val imageView = binding.navView.getHeaderView(0).findViewById<ImageView>(R.id.imageView)
+            val resId = resources.getIdentifier(pictureName, "drawable", packageName)
+            imageView.setImageResource(resId)
+        }
     }
 
 

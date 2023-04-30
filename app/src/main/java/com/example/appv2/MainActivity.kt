@@ -1,0 +1,166 @@
+package com.example.appv2
+
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
+import android.widget.ImageView
+import androidx.appcompat.app.AlertDialog
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.navigation.NavigationView
+import androidx.navigation.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.appcompat.app.AppCompatActivity
+import com.example.appv2.databinding.ActivityMainBinding
+import com.example.appv2.ui.SettingsActivity
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var binding: ActivityMainBinding
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        //setThemeFromPreference()
+        super.onCreate(savedInstanceState)
+        //setThemeFromPreference()
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        setSupportActionBar(binding.appBarMain.toolbar)
+
+        val drawerLayout: DrawerLayout = binding.drawerLayout
+        val navView: NavigationView = binding.navView
+        val navController = findNavController(R.id.nav_host_fragment_content_main)
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
+        appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.nav_home, R.id.nav_gallery
+            ), drawerLayout
+        )
+        setupActionBarWithNavController(navController, appBarConfiguration)
+        navView.setupWithNavController(navController)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        menuInflater.inflate(R.menu.main, menu)
+        return true
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        val navController = findNavController(R.id.nav_host_fragment_content_main)
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+
+    fun onChangeProfilePictureClick(view: View) {
+        // Show a dialog to let the user choose a new profile picture
+        showChangeProfilePictureDialog()
+    }
+
+    private fun saveProfilePictureSelection(pictureName: String) {
+        val sharedPreferences = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString("profile_picture", pictureName)
+        editor.apply()
+    }
+
+
+    private fun showChooseDefaultProfilePictureDialog() {
+        val profilePictures = arrayOf(
+            "boy", "boy_two", "boy_three",
+            "girl", "girl_two", "girl_three"
+        )
+
+        AlertDialog.Builder(this)
+            .setTitle("Choose a profile picture")
+            .setItems(profilePictures) { _, which ->
+                val selectedPicture = profilePictures[which]
+                val imageView = binding.navView.getHeaderView(0).findViewById<ImageView>(R.id.imageView)
+                val resId = resources.getIdentifier(selectedPicture, "drawable", packageName)
+                imageView.setImageResource(resId)
+
+                // Save the user's profile picture selection
+                saveProfilePictureSelection(selectedPicture)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showChangeProfilePictureDialog() {
+        val options = arrayOf("Choose from gallery", "Choose from default pictures")
+
+        AlertDialog.Builder(this)
+            .setTitle("Change profile picture")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> {
+                        pickImageFromGallery()
+                    }
+                    1 -> {
+                        showChooseDefaultProfilePictureDialog()
+                    }
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    companion object {
+        private const val PICK_IMAGE_REQUEST_CODE = 2
+        private const val SETTINGS_REQUEST_CODE = 3
+    }
+
+    private fun pickImageFromGallery() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "image/*"
+        }
+        startActivityForResult(intent, PICK_IMAGE_REQUEST_CODE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == PICK_IMAGE_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            val selectedImageUri = data.data
+            if (selectedImageUri != null) {
+                val imageView = binding.navView.getHeaderView(0).findViewById<ImageView>(R.id.imageView)
+                imageView.setImageURI(selectedImageUri)
+            }
+        } else if (requestCode == SETTINGS_REQUEST_CODE) {
+            setThemeFromPreference()
+            recreate()
+        }
+    }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_settings -> {
+                val intent = Intent(this, SettingsActivity::class.java)
+                startActivityForResult(intent, SETTINGS_REQUEST_CODE)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+    private fun setThemeFromPreference() {
+        val sharedPreferences = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val themeName = sharedPreferences.getString("app_theme", SettingsActivity.Theme.APP.name)
+        val theme = SettingsActivity.Theme.valueOf(themeName ?: SettingsActivity.Theme.APP.name)
+
+        when (theme) {
+            SettingsActivity.Theme.APP -> {
+                setTheme(R.style.Theme_App)
+            }
+            SettingsActivity.Theme.DARK -> {
+                setTheme(R.style.Theme_App_Dark)
+            }
+        }
+    }
+
+}

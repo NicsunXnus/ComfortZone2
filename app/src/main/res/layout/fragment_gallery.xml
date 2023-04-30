@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.gallery.GalleryFragment">
+
+    <!-- API text collector -->
+
+    <!-- OpenAI API -->
+    <TextView
+        android:id="@+id/text_openai_api_key_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OpenAI API Key"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintVertical_bias="0.1"/>
+
+    <EditText
+        android:id="@+id/edit_openai_api_key"
+        android:layout_width="283dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="8dp"
+        android:hint="Enter OpenAI API Key"
+        android:inputType="text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_openai_api_key_title"
+        tools:ignore="TouchTargetSizeCheck" />
+
+    <Button
+        android:id="@+id/button_submit_openai_api_key"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Submit"
+        app:layout_constraintBottom_toBottomOf="@id/edit_openai_api_key"
+        app:layout_constraintStart_toEndOf="@id/edit_openai_api_key"
+        app:layout_constraintTop_toTopOf="@id/edit_openai_api_key" />
+
+
+    <!-- ElevenLab API -->
+    <TextView
+        android:id="@+id/text_elevenlab_api_key_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:text="ElevenLab API Key"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/edit_openai_api_key" />
+
+    <EditText
+        android:id="@+id/edit_elevenlab_api_key"
+        android:layout_width="282dp"
+        android:layout_height="39dp"
+        android:layout_marginTop="8dp"
+        android:hint="Enter ElevenLab API Key"
+        android:inputType="text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_elevenlab_api_key_title"
+        tools:ignore="TouchTargetSizeCheck" />
+
+    <Button
+        android:id="@+id/button_submit_elevenlab_api_key"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Submit"
+        app:layout_constraintBottom_toBottomOf="@id/edit_elevenlab_api_key"
+        app:layout_constraintStart_toEndOf="@id/edit_elevenlab_api_key"
+        app:layout_constraintTop_toTopOf="@id/edit_elevenlab_api_key" />
+
+    <!-- Hyperlinks -->
+    <TextView
+        android:id="@+id/openai_api_link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="@id/edit_openai_api_key"
+        app:layout_constraintTop_toBottomOf="@id/edit_openai_api_key"
+        tools:text="Get OpenAI API Key" />
+
+    <TextView
+        android:id="@+id/elevenlab_api_link"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        app:layout_constraintStart_toStartOf="@id/edit_elevenlab_api_key"
+        app:layout_constraintTop_toBottomOf="@id/edit_elevenlab_api_key"
+        tools:text="Get ElevenLab API Key" />
+
+    <!-- TextView for OpenAI API Key -->
+    <TextView
+        android:id="@+id/text_view_openai_api_key"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:text="OpenAI API Key"
+        android:textIsSelectable="true"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@id/text_view_elevenlab_api_key"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/elevenlab_api_link"
+        tools:ignore="TouchTargetSizeCheck" />
+
+    <TextView
+        android:id="@+id/text_view_elevenlab_api_key"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:text="ElevenLab API Key"
+        android:textIsSelectable="true"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_view_openai_api_key"
+        tools:ignore="TouchTargetSizeCheck" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

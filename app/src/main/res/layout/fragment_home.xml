@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.home.HomeFragment">
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:overScrollMode="always"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toTopOf="@id/spinnerContainer"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0"
+        tools:ignore="SpeakableTextPresentCheck"
+        tools:layout_editor_absoluteX="-28dp">
+
+        <LinearLayout
+            android:id="@+id/chatMessagesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:scrollbars="vertical"
+            android:weightSum="1"
+            app:layout_constraintStart_toEndOf="@id/changeSystemMessageButton">
+
+            <!-- Add your chat messages layout here -->
+
+            <Button
+                android:id="@+id/changeSystemMessageButton"
+                android:layout_width="match_parent"
+                android:layout_height="37dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginLeft="68dp"
+                android:text="Change System Message"
+                android:visibility="visible"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:ignore="MissingConstraints,TouchTargetSizeCheck"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="67dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginEnd="-60dp"
+        android:layout_marginBottom="25dp"
+        android:src="@android:drawable/ic_delete"
+        app:backgroundTint="@color/white"
+        app:layout_constraintBottom_toTopOf="@+id/spinnerContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/remaining_characters"
+        tools:ignore="MissingConstraints,SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+
+    <LinearLayout
+        android:id="@+id/spinnerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@id/bottomControlsContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Spinner
+            android:id="@+id/spinnerVoice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/bottomControlsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <EditText
+            android:id="@+id/editTextMessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:hint="Type your message"
+            android:imeOptions="actionSend"
+            android:inputType="text"
+            tools:ignore="TouchTargetSizeCheck" />
+
+        <Button
+            android:id="@+id/buttonSubmit"
+            android:layout_width="77dp"
+            android:layout_height="wrap_content"
+            android:text="Submit"
+            android:textSize="10dp"
+            tools:ignore="TextSizeCheck" />
+
+        <!-- home_fragment.xml -->
+        <Button
+            android:id="@+id/get_voices_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="Get Voices"
+            android:textSize="10dp"
+            app:layout_constraintBottom_toTopOf="@id/buttonSubmit"
+            app:layout_constraintEnd_toEndOf="@id/buttonSubmit"
+            app:layout_constraintStart_toStartOf="@id/buttonSubmit"
+            tools:ignore="TextSizeCheck" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/remaining_characters"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="25dp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/spinnerContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+ />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

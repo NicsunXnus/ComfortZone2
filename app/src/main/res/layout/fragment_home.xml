@@ -6,17 +6,34 @@
     android:layout_height="match_parent"
     tools:context=".ui.home.HomeFragment">
 
+    <Button
+        android:id="@+id/changeSystemMessageButton"
+        android:layout_width="match_parent"
+        android:layout_height="33dp"
+        android:text="Change System Message"
+        android:textSize="12dp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/nestedScrollView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints,NotSibling,TouchTargetSizeCheck,TextSizeCheck"
+        tools:visibility="visible" />
+
     <androidx.core.widget.NestedScrollView
         android:id="@+id/nestedScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_width="414dp"
+        android:layout_height="588dp"
         android:overScrollMode="always"
         android:scrollbars="vertical"
         app:layout_constraintBottom_toTopOf="@id/spinnerContainer"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/changeSystemMessageButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+
         app:layout_constraintVertical_bias="1.0"
         tools:ignore="SpeakableTextPresentCheck"
-        tools:layout_editor_absoluteX="-28dp">
+        tools:layout_editor_absoluteX="-3dp">
 
         <LinearLayout
             android:id="@+id/chatMessagesContainer"
@@ -25,22 +42,9 @@
             android:orientation="vertical"
             android:padding="16dp"
             android:scrollbars="vertical"
-            android:weightSum="1"
-            app:layout_constraintStart_toEndOf="@id/changeSystemMessageButton">
+            android:weightSum="1">
 
             <!-- Add your chat messages layout here -->
-
-            <Button
-                android:id="@+id/changeSystemMessageButton"
-                android:layout_width="match_parent"
-                android:layout_height="37dp"
-                android:layout_marginStart="10dp"
-                android:layout_marginLeft="68dp"
-                android:text="Change System Message"
-                android:visibility="visible"
-                app:layout_constraintStart_toStartOf="parent"
-                tools:ignore="MissingConstraints,TouchTargetSizeCheck"
-                tools:visibility="visible" />
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>

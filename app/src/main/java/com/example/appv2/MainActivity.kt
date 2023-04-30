@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
@@ -17,7 +16,7 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.example.appv2.databinding.ActivityMainBinding
-import com.example.appv2.ui.SettingsActivity
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
@@ -121,7 +120,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val PICK_IMAGE_REQUEST_CODE = 2
-        private const val SETTINGS_REQUEST_CODE = 3
     }
 
     private fun pickImageFromGallery() {
@@ -140,33 +138,6 @@ class MainActivity : AppCompatActivity() {
             if (selectedImageUri != null) {
                 val imageView = binding.navView.getHeaderView(0).findViewById<ImageView>(R.id.imageView)
                 imageView.setImageURI(selectedImageUri)
-            }
-        } else if (requestCode == SETTINGS_REQUEST_CODE) {
-            setThemeFromPreference()
-            recreate()
-        }
-    }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_settings -> {
-                val intent = Intent(this, SettingsActivity::class.java)
-                startActivityForResult(intent, SETTINGS_REQUEST_CODE)
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-    private fun setThemeFromPreference() {
-        val sharedPreferences = getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
-        val themeName = sharedPreferences.getString("app_theme", SettingsActivity.Theme.APP.name)
-        val theme = SettingsActivity.Theme.valueOf(themeName ?: SettingsActivity.Theme.APP.name)
-
-        when (theme) {
-            SettingsActivity.Theme.APP -> {
-                setTheme(R.style.Theme_App)
-            }
-            SettingsActivity.Theme.DARK -> {
-                setTheme(R.style.Theme_App_Dark)
             }
         }
     }

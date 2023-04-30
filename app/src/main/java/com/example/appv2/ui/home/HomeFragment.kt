@@ -158,8 +158,6 @@ class HomeFragment : Fragment() {
                 val newContent = contentEditText.text.toString().trim()
                 if (newContent.isNotEmpty()) {
                     sharedViewModel.setContent(newContent)
-                } else {
-                    Toast.makeText(requireContext(), "Both fields are required", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Cancel", null)

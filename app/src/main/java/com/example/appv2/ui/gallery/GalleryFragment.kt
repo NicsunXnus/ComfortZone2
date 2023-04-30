@@ -25,7 +25,6 @@ import com.example.appv2.SharedViewModel
 class GalleryFragment : Fragment() {
 
     private var _binding: FragmentGalleryBinding? = null
-    //private lateinit var apiKey: String
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!

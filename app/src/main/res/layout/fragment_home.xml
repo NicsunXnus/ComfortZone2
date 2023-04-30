@@ -26,7 +26,7 @@
         android:layout_height="588dp"
         android:overScrollMode="always"
         android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@id/spinnerContainer"
+        app:layout_constraintBottom_toTopOf="@id/remaining_characters"
         app:layout_constraintTop_toBottomOf="@+id/changeSystemMessageButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

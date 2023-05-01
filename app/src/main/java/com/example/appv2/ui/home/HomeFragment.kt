@@ -30,7 +30,6 @@ import com.google.gson.reflect.TypeToken
 
 import java.io.File
 
-
 class HomeFragment : Fragment() {
     private lateinit var editTextMessage: EditText
     private lateinit var buttonSubmit: Button
@@ -62,6 +61,11 @@ class HomeFragment : Fragment() {
 
         updateRemainingCharacters()
 
+        chatContainer.setOnLongClickListener {
+            Toast.makeText(requireContext(), "The Chat Box", Toast.LENGTH_SHORT).show()
+            true
+        }
+
         fab = root.findViewById(R.id.fab)
         fab.setOnClickListener {
             clearChat()
@@ -70,6 +74,10 @@ class HomeFragment : Fragment() {
                 snackbar.dismiss()
             }
             snackbar.show()
+        }
+        fab.setOnLongClickListener {
+            Toast.makeText(requireContext(), "Clears chat", Toast.LENGTH_SHORT).show()
+            true // Return true to indicate the long click event is consumed
         }
 
         CoroutineScope(Dispatchers.Main).launch {
@@ -103,6 +111,10 @@ class HomeFragment : Fragment() {
         // Set up the submit button
         buttonSubmit.setOnClickListener {
             submitMessage()
+        }
+        buttonSubmit.setOnLongClickListener {
+            Toast.makeText(requireContext(), "Sends chat to the left of the screen", Toast.LENGTH_SHORT).show()
+            true
         }
 
         buttonGetVoices.setOnClickListener {
@@ -138,9 +150,18 @@ class HomeFragment : Fragment() {
             }
         }
 
+        buttonGetVoices.setOnLongClickListener {
+            Toast.makeText(requireContext(), "Gets all the voices from the voicelab", Toast.LENGTH_SHORT).show()
+            true
+        }
+
         val changeSystemMessageButton: Button = root.findViewById(R.id.changeSystemMessageButton)
         changeSystemMessageButton.setOnClickListener {
             showChangeSystemMessageDialog()
+        }
+        changeSystemMessageButton.setOnLongClickListener {
+            Toast.makeText(requireContext(), "Change the role of ChatGPT", Toast.LENGTH_SHORT).show()
+            true
         }
 
         return root
@@ -168,27 +189,37 @@ class HomeFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
+        chatContainer.removeAllViews()
         saveMessagesList(messagesList)
     }
 
     override fun onResume() {
         super.onResume()
+        messagesList.clear()
         messagesList.addAll(loadMessagesList())
+        //Adds back the chat messages
+        for (i in messagesList.indices) {
+            if (i % 2 != 0) {
+                addMessageToChatContainer(messagesList[i].content, false)
+            } else {
+                addMessageToChatContainer(messagesList[i].content, true)
+            }
+        }
     }
 
     private fun showChangeSystemMessageDialog() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_change_system_message, null)
 
         val contentEditText = dialogView.findViewById<EditText>(R.id.contentEditText)
-
+        val systemMsgStore = dialogView.findViewById<TextView>(R.id.systemMsgDisplay)
+        systemMsgStore.text = sharedViewModel?.systemMessageContent?.value ?: ""
         val alertDialog = AlertDialog.Builder(requireContext())
             .setTitle("Change System Message")
             .setView(dialogView)
             .setPositiveButton("Update") { _, _ ->
                 val newContent = contentEditText.text.toString().trim()
-                if (newContent.isNotEmpty()) {
-                    sharedViewModel.setContent(newContent)
-                }
+                sharedViewModel.setContent(newContent)
+                Toast.makeText(requireContext(),"System personality updated!",Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancel", null)
             .create()
@@ -300,7 +331,6 @@ class HomeFragment : Fragment() {
             }
         }
     }
-
 
     private fun addMessageToChatContainer(message: String, isUserMessage: Boolean) {
         val textView = TextView(context).apply {

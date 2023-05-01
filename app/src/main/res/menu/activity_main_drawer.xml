@@ -12,5 +12,9 @@
             android:id="@+id/nav_gallery"
             android:icon="@drawable/api"
             android:title="API Keys" />
+        <item
+            android:id="@+id/chat_history"
+            android:icon="@drawable/baseline_history_24"
+            android:title="Chat History" />
     </group>
 </menu>

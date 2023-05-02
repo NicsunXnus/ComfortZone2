@@ -58,19 +58,7 @@ class GalleryFragment : Fragment() {
         val openAIKeyTextView: TextView = binding.textViewOpenaiApiKey
         val elevenLabKeyTextView: TextView = binding.textViewElevenlabApiKey
 
-        val sharedPreferences = requireActivity().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
-        val openAIKey = sharedPreferences.getString("openai_api_key", "")
-        val elevenLabKey = sharedPreferences.getString("elevenlab_api_key", "")
-
-        if (!openAIKey.isNullOrEmpty()) {
-            openAIKeyTextView.text = "OpenAI API Key: $openAIKey"
-            passOpenAIKey(openAIKey)
-        }
-
-        if (!elevenLabKey.isNullOrEmpty()) {
-            elevenLabKeyTextView.text = "ElevenLab API Key: $elevenLabKey"
-            passElevenLabKey(elevenLabKey)
-        }
+        loadApiKeysFromSharedPreferences()
 
         submitOpenAIButton.setOnClickListener {
             val openAIKey = binding.editOpenaiApiKey.text.toString()
@@ -120,8 +108,6 @@ class GalleryFragment : Fragment() {
             movementMethod = LinkMovementMethod.getInstance()
         }
 
-
-
         return root
     }
 
@@ -136,12 +122,33 @@ class GalleryFragment : Fragment() {
     }
 
     private fun saveApiKeyToSharedPreferences(keyName: String, apiKey: String) {
-        val sharedPreferences = requireActivity().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        val sharedPreferences = requireActivity().getSharedPreferences("apikeys", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putString(keyName, apiKey)
         editor.apply()
     }
 
+    override fun onResume() {
+        super.onResume()
+        loadApiKeysFromSharedPreferences()
+    }
+    private fun loadApiKeysFromSharedPreferences() {
+        val sharedPreferences = requireActivity().getSharedPreferences("apikeys", Context.MODE_PRIVATE)
+        val openAIKey = sharedPreferences.getString("openai_api_key", "")
+        val elevenLabKey = sharedPreferences.getString("elevenlab_api_key", "")
+        val openAIKeyTextView: TextView = binding.textViewOpenaiApiKey
+        val elevenLabKeyTextView: TextView = binding.textViewElevenlabApiKey
+
+        if (!openAIKey.isNullOrEmpty()) {
+            openAIKeyTextView.text = "OpenAI API Key: $openAIKey"
+            passOpenAIKey(openAIKey)
+        }
+
+        if (!elevenLabKey.isNullOrEmpty()) {
+            elevenLabKeyTextView.text = "ElevenLab API Key: $elevenLabKey"
+            passElevenLabKey(elevenLabKey)
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

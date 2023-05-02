@@ -81,7 +81,7 @@ class HomeFragment : Fragment() {
         }
 
         CoroutineScope(Dispatchers.Main).launch {
-            val apiKey = sharedViewModel.elevenLabsApiKey.value ?: "a4d7726f7a83a1942e92ce4c0a283be9"
+            val apiKey = sharedViewModel.elevenLabsApiKey.value ?: "No API Key"
 
             try {
                 val narrateApiService = Retrofit.Builder()
@@ -120,7 +120,7 @@ class HomeFragment : Fragment() {
         buttonGetVoices.setOnClickListener {
             // Your logic to fetch the voices and display them
             CoroutineScope(Dispatchers.Main).launch {
-                val apiKey = sharedViewModel.elevenLabsApiKey.value ?: "a4d7726f7a83a1942e92ce4c0a283be9"
+                val apiKey = sharedViewModel.elevenLabsApiKey.value ?: "No API Key"
 
                 try {
                     val narrateApiService = Retrofit.Builder()
@@ -140,11 +140,10 @@ class HomeFragment : Fragment() {
                         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
                         spinnerVoice.adapter = adapter
                     } else {
-                        Toast.makeText(requireContext(), "Unsuccessful API response, code: ${response.code()}, errorBody: ${response.errorBody()}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Couldnt retrieve voice list", Toast.LENGTH_SHORT).show()
                         Log.e("HomeFragment", "Unsuccessful API response, code: ${response.code()}, errorBody: ${response.errorBody()}")
                     }
                 } catch (e: Exception) {
-                    Toast.makeText(requireContext(), "\"Error during API call: ${e.message}", Toast.LENGTH_SHORT).show()
                     Log.e("HomeFragment", "Error during API call: ${e.message}")
                 }
             }
@@ -244,16 +243,32 @@ class HomeFragment : Fragment() {
                         reply?.let {
                             addMessageToChatContainer(it, false)
                             // Add the previous system response, if available
-                            val lastSystemResponse = Message("system",reply)
+                            val lastSystemResponse = Message("system", reply)
                             messagesList.add(lastSystemResponse)
 
                             // Add this code inside the submitMessage() function, right after the line `addMessageToChatContainer(it, false)`
-                            val voiceName = spinnerVoice.selectedItem.toString().split(":")[1].trim()
-                            val narrateApiKey = sharedViewModel.elevenLabsApiKey.value ?: "a4d7726f7a83a1942e92ce4c0a283be9"
+                            val voiceName =
+                                spinnerVoice.selectedItem.toString().split(":")[1].trim()
+                            val narrateApiKey = sharedViewModel.elevenLabsApiKey.value
+                                ?: "No Key"
+                            if (narrateApiKey == "No Key") {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "No 11Lab API key found, please set an API key.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                             generateVoiceOutput(it, voiceName, narrateApiKey)
                         }
                     }
                 } ?: run {
+                    Toast.makeText(
+                        requireContext(),
+                        "No OpenAI API key found, please set an API key.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                /*?: run {
                     // Handle the case when there's no API key
                     Toast.makeText(requireContext(), "No API key found, please set an API key. Using a backup api key now", Toast.LENGTH_SHORT).show()
                     val chatGptResponse = fetchChatGptResponse(message, "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")
@@ -271,6 +286,7 @@ class HomeFragment : Fragment() {
                         }
                     }
                 }
+            }*/
             }
             updateRemainingCharacters()
         }
@@ -304,8 +320,8 @@ class HomeFragment : Fragment() {
                 }
             } ?: run {
                 // Handle the case when there's no API key
-                Toast.makeText(requireContext(), "No 11Lab API key found, please set an API key. Using a backup api key now", Toast.LENGTH_SHORT).show()
-                try {
+                Toast.makeText(requireContext(), "No 11Lab API key found, please set an API key.", Toast.LENGTH_SHORT).show()
+                /*try {
                     val apiService = Retrofit.Builder()
                         .baseUrl("https://api.elevenlabs.io/")
                         .client(okHttpClient)
@@ -327,7 +343,7 @@ class HomeFragment : Fragment() {
                     }
                 } catch (e: Exception) {
                     Log.e("HomeFragment", "Error during API call: ${e.message}")
-                }
+                }*/
             }
         }
     }
@@ -376,7 +392,8 @@ class HomeFragment : Fragment() {
         val requestBody = ChatGptRequest(
             model = "gpt-3.5-turbo",
             messages = listOf(
-                Message(role = "system", content = (sharedViewModel.systemMessageContent.value ?: "You are ChatGPT, a large language model") + ".Please only answer the latest message in the conversation.")
+                Message(role = "system", content = (if (sharedViewModel.systemMessageContent.value.isNullOrBlank()) "You are ChatGPT, a large language model" else sharedViewModel.systemMessageContent.value) + ". Please only answer the latest message in the conversation."
+                )
             )   + messagesList // Add the message list to the request
         )
 

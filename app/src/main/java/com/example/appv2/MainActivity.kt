@@ -2,10 +2,13 @@ package com.example.appv2
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.View
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
@@ -15,6 +18,8 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.example.appv2.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -42,6 +47,16 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
         loadProfilePictureSelection()
+        // Load the saved image URI from preferences
+        //checkStoragePermission()
+        val savedImageUri = loadImageUriFromPreferences()
+        val imageView = binding.navView.getHeaderView(0).findViewById<ImageView>(R.id.imageView)
+        // Set the profile picture ImageView with the saved image URI
+        if (savedImageUri != null) {
+            val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            contentResolver.takePersistableUriPermission(savedImageUri, takeFlags)
+            imageView.setImageURI(savedImageUri)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -111,6 +126,10 @@ class MainActivity : AppCompatActivity() {
                     }
                     1 -> {
                         showChooseDefaultProfilePictureDialog()
+                        val sharedPreferences = getSharedPreferences("gallery_photo", Context.MODE_PRIVATE)
+                        val editor = sharedPreferences.edit()
+                        editor.remove("profile_image_uri")
+                        editor.apply()
                     }
                 }
             }
@@ -130,6 +149,24 @@ class MainActivity : AppCompatActivity() {
         startActivityForResult(intent, PICK_IMAGE_REQUEST_CODE)
     }
 
+    private fun saveImageUriToPreferences(imageUri: Uri) {
+        val sharedPreferences = getSharedPreferences("gallery_photo", Context.MODE_PRIVATE)
+        with(sharedPreferences.edit()) {
+            putString("profile_image_uri", imageUri.toString())
+            apply()
+        }
+    }
+
+    private fun loadImageUriFromPreferences(): Uri? {
+        val sharedPreferences = getSharedPreferences("gallery_photo", Context.MODE_PRIVATE)
+        val imageUriString = sharedPreferences.getString("profile_image_uri", null)
+        return if (imageUriString != null) {
+            Uri.parse(imageUriString)
+        } else {
+            null
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
@@ -137,7 +174,10 @@ class MainActivity : AppCompatActivity() {
             val selectedImageUri = data.data
             if (selectedImageUri != null) {
                 val imageView = binding.navView.getHeaderView(0).findViewById<ImageView>(R.id.imageView)
+                val takeFlags: Int = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                contentResolver.takePersistableUriPermission(selectedImageUri, takeFlags)
                 imageView.setImageURI(selectedImageUri)
+                saveImageUriToPreferences(selectedImageUri)
             }
         }
     }

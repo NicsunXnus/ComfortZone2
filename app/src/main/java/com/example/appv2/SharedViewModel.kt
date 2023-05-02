@@ -21,7 +21,7 @@ class SharedViewModel : ViewModel() {
         _openAIKey.value = key
     }
     fun setElevenLabsAIKey(key: String) {
-        _openAIKey.value = key
+        _elevenLabsApiKey.value = key
     }
     fun setRole(key: String) {
         _systemMessageRole.value = key

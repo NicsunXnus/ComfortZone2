@@ -29,7 +29,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 
 import java.io.File
-
+import android.widget.ArrayAdapter
+import android.widget.ListView
 class HomeFragment : Fragment() {
     private lateinit var editTextMessage: EditText
     private lateinit var buttonSubmit: Button
@@ -39,9 +40,9 @@ class HomeFragment : Fragment() {
     private lateinit var fab: FloatingActionButton
     private var _binding: FragmentHomeBinding? = null
     private lateinit var sharedViewModel: SharedViewModel
-    private val messagesList = mutableListOf<Message>()
+    private var messagesList = mutableListOf<Message>()
     private lateinit var buttonGetVoices: Button
-
+    private lateinit var manageSessionsFab: FloatingActionButton
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,6 +80,10 @@ class HomeFragment : Fragment() {
             Toast.makeText(requireContext(), "Clears chat", Toast.LENGTH_SHORT).show()
             true // Return true to indicate the long click event is consumed
         }
+
+        manageSessionsFab = root.findViewById(R.id.manageSessionsFab)
+        manageSessionsFab.setOnClickListener { showSessionOptionsDialog() }
+
 
         CoroutineScope(Dispatchers.Main).launch {
             val apiKey = sharedViewModel.elevenLabsApiKey.value ?: "No API Key"
@@ -186,16 +191,155 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun showSessionOptionsDialog() {
+        val items = arrayOf("Save current session", "Load another session")
+        AlertDialog.Builder(requireContext())
+            .setTitle("Manage Sessions")
+            .setItems(items) { _, which ->
+                when (which) {
+                    0 -> saveCurrentSession()
+                    1 -> loadAnotherSession()
+                }
+            }
+            .show()
+    }
+    private fun saveCurrentSession() {
+        val editText = EditText(requireContext())
+        AlertDialog.Builder(requireContext())
+            .setTitle("Save Current Session")
+            .setMessage("Enter a name for the session:")
+            .setView(editText)
+            .setPositiveButton("Save") { _, _ ->
+                val sessionName = editText.text.toString()
+                val sessionMessagesList = messagesList.toList()
+                sharedViewModel.addChatSession(sessionName, sharedViewModel.systemMessageContent.value ?: "",sessionMessagesList)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    /*private fun loadAnotherSession() {
+        val sessions = sharedViewModel.chatSessions.value?.map { it.name }?.toTypedArray() ?: emptyArray()
+        AlertDialog.Builder(requireContext())
+            .setTitle("Load Another Session")
+            .setItems(sessions) { _, which ->
+                sharedViewModel.loadChatSession(sessions[which])
+                clearChat()
+                messagesList = sharedViewModel.currentSession.value?.messages?.toMutableList() ?: mutableListOf<Message>()
+                sharedViewModel.setContent(sharedViewModel.currentSession.value?.context?:"")
+                val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_change_system_message, null)
+                val systemMsgStore = dialogView.findViewById<TextView>(R.id.systemMsgDisplay)
+                systemMsgStore.text = sharedViewModel.currentSession.value?.context?:""
+                //Adds back the chat messages
+                for (i in messagesList.indices) {
+                    if (i % 2 != 0) {
+                        addMessageToChatContainer(messagesList[i].content, false)
+                    } else {
+                        addMessageToChatContainer(messagesList[i].content, true)
+                    }
+                }
+            }
+            .show()
+
+    }*/
+
+    private fun loadAnotherSession() {
+        val sessions = sharedViewModel.chatSessions.value?.map { it.name }?.toMutableList() ?: mutableListOf<String>()
+
+        val builder = AlertDialog.Builder(requireContext())
+        builder.setTitle("Load Another Session")
+
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_load_sessions, null)
+        val sessionsListView = dialogView.findViewById<ListView>(R.id.sessions_list)
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, sessions)
+        sessionsListView.adapter = adapter
+
+        sessionsListView.setOnItemClickListener { _, _, position, _ ->
+            sharedViewModel.loadChatSession(sessions[position])
+            clearChat()
+            messagesList = sharedViewModel.currentSession.value?.messages?.toMutableList() ?: mutableListOf<Message>()
+            sharedViewModel.setContent(sharedViewModel.currentSession.value?.context?:"")
+            //Adds back the chat messages
+            for (i in messagesList.indices) {
+                if (i % 2 != 0) {
+                    addMessageToChatContainer(messagesList[i].content, false)
+                } else {
+                    addMessageToChatContainer(messagesList[i].content, true)
+                }
+            }
+        }
+
+        sessionsListView.setOnItemLongClickListener { _, _, position, _ ->
+            AlertDialog.Builder(requireContext())
+                .setTitle("Delete Session")
+                .setMessage("Do you want to delete this session?")
+                .setPositiveButton("Yes") { _, _ ->
+                    sharedViewModel.removeChatSession(sessions[position])
+                    adapter.remove(sessions[position])
+                    adapter.notifyDataSetChanged()
+                }
+                .setNegativeButton("No", null)
+                .show()
+            true
+        }
+
+        builder.setView(dialogView)
+        builder.setNegativeButton("Cancel", null)
+        builder.show()
+    }
+
+
+
+    private fun saveContext() {
+        val sharedPreferences = requireActivity().getSharedPreferences("context", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString("context",sharedViewModel.systemMessageContent.value?:"")
+        editor.apply()
+    }
+    private fun loadContext() {
+        val sharedPreferences = requireActivity().getSharedPreferences("context", Context.MODE_PRIVATE)
+        val context = sharedPreferences.getString("context", "")
+
+        if (!context.isNullOrEmpty()) {
+            sharedViewModel.setContent(context)
+            val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_change_system_message, null)
+            val systemMsgStore = dialogView.findViewById<TextView>(R.id.systemMsgDisplay)
+            systemMsgStore.text = context
+        }
+    }
+
+    // Call this method to save the chat sessions to SharedPreferences
+    fun saveChatSessions() {
+        val sharedPreferences = requireActivity().getSharedPreferences("chat_sessions", Context.MODE_PRIVATE)
+        val sessionsJson = Gson().toJson(sharedViewModel.chatSessions.value)
+        sharedPreferences.edit().putString("sessions", sessionsJson).apply()
+    }
+
+    // Call this method to load the chat sessions from SharedPreferences
+    fun loadChatSessions() {
+        val sessionsJson = requireActivity().getSharedPreferences("chat_sessions", Context.MODE_PRIVATE).getString("sessions", null)
+        if (sessionsJson != null) {
+            sharedViewModel.clearChatSessions()
+            val type = object : TypeToken<List<ChatSession>>() {}.type
+            val sessions = Gson().fromJson<List<ChatSession>>(sessionsJson, type)
+            for (i in sessions.indices) {
+                sharedViewModel.addChatSession(sessions[i].name,sessions[i].context,sessions[i].messages)
+            }
+        }
+    }
     override fun onPause() {
         super.onPause()
         chatContainer.removeAllViews()
         saveMessagesList(messagesList)
+        saveContext()
+        saveChatSessions()
     }
 
     override fun onResume() {
         super.onResume()
         messagesList.clear()
         messagesList.addAll(loadMessagesList())
+        loadContext()
         //Adds back the chat messages
         for (i in messagesList.indices) {
             if (i % 2 != 0) {
@@ -204,6 +348,7 @@ class HomeFragment : Fragment() {
                 addMessageToChatContainer(messagesList[i].content, true)
             }
         }
+        loadChatSessions()
     }
 
     private fun showChangeSystemMessageDialog() {

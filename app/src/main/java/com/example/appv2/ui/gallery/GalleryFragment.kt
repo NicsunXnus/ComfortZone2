@@ -108,6 +108,14 @@ class GalleryFragment : Fragment() {
             movementMethod = LinkMovementMethod.getInstance()
         }
 
+        val clearApiKeysButton: Button = binding.clearApiKeysButton
+        clearApiKeysButton.setOnClickListener {
+            openAIKeyTextView.text = ""
+            elevenLabKeyTextView.text = ""
+            saveApiKeyToSharedPreferences("openai_api_key", "")
+            saveApiKeyToSharedPreferences("elevenlab_api_key", "")
+        }
+
         return root
     }
 

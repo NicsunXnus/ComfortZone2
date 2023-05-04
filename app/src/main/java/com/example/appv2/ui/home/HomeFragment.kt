@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.view.*
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -33,6 +35,7 @@ import java.io.File
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import androidx.annotation.RequiresApi
+import com.airbnb.lottie.LottieAnimationView
 import java.time.LocalDateTime
 
 import com.google.gson.*
@@ -476,6 +479,24 @@ class HomeFragment : Fragment() {
         alertDialog.show()
     }
 
+    private fun animateTextResponse(textView: TextView, message: String, onAnimationComplete: (() -> Unit)? = null) {
+        var index = 0
+        val animDuration = 40L // Duration for each character animation in milliseconds
+        val handler = Handler(Looper.getMainLooper())
+        val runnable = object : Runnable {
+            override fun run() {
+                if (index < message.length) {
+                    textView.text = textView.text.toString() + message[index]
+                    index++
+                    handler.postDelayed(this, animDuration)
+                } else {
+                    onAnimationComplete?.invoke()
+                }
+            }
+        }
+        handler.post(runnable)
+    }
+
     private fun submitMessage() {
         val message = editTextMessage.text.toString().trim()
         if (message.isNotEmpty()) {
@@ -492,11 +513,9 @@ class HomeFragment : Fragment() {
                         val reply = response.choices.firstOrNull()?.message?.content?.trim()
                         reply?.let {
                             addMessageToChatContainer(it, false)
-                            // Add the previous system response, if available
+                            //addMessageToChatContainer("", false)
                             val lastSystemResponse = Message("system", reply)
                             messagesList.add(lastSystemResponse)
-
-                            // Add this code inside the submitMessage() function, right after the line `addMessageToChatContainer(it, false)`
                             val voiceName =
                                 spinnerVoice.selectedItem.toString().split(":")[1].trim()
                             val narrateApiKey = sharedViewModel.elevenLabsApiKey.value
@@ -598,7 +617,7 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun addMessageToChatContainer(message: String, isUserMessage: Boolean) {
+    /*private fun addMessageToChatContainer(message: String, isUserMessage: Boolean) {
         val textView = TextView(context).apply {
             text = message
             textSize = 18f
@@ -613,7 +632,46 @@ class HomeFragment : Fragment() {
             }
         }
         chatContainer.addView(textView)
+    }*/
+    /*private fun showTypingAnimation(show: Boolean) {
+        requireActivity().findViewById<ProgressBar>(R.id.typingIndicator).visibility = if (show) View.VISIBLE else View.GONE
+    }*/
+    private fun showTypingAnimation2(show: Boolean) {
+        val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.typingIndicator2)
+        //typingIndicator.visibility = if (show) View.VISIBLE else View.GONE
+        if (show) {
+            typingIndicator.playAnimation()
+        } else {
+            typingIndicator.cancelAnimation()
+        }
     }
+
+    private fun addMessageToChatContainer(message: String, isUserMessage: Boolean) {
+        val textView = TextView(context).apply {
+            text = ""
+            textSize = 18f
+            setBackgroundResource(if (isUserMessage) R.drawable.speech_bubble_background else R.drawable.speech_bubble_background_reply)
+            setPadding(16, 8, 16, 8) // Add padding around the text
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(8, 8, 8, 8) // Add margins between messages
+                gravity = if (isUserMessage) Gravity.START else Gravity.END
+            }
+        }
+        chatContainer.addView(textView)
+
+        if (isUserMessage) {
+            textView.text = message
+        } else {
+            showTypingAnimation2(true)
+            animateTextResponse(textView, message) {
+                showTypingAnimation2(false)
+            }
+        }
+    }
+
 
     fun clearChat() {
         chatContainer.removeAllViews()

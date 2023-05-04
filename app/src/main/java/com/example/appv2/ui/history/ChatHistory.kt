@@ -18,10 +18,8 @@ import com.example.appv2.databinding.FragmentHistoryBinding
 import com.example.appv2.ui.home.ChatHistoryAdapter
 import com.example.appv2.ui.home.ChatHistoryItem
 import com.example.appv2.ui.home.HomeFragment
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
-import java.io.File
 import java.time.LocalDateTime
 
 class ChatHistory : Fragment() {

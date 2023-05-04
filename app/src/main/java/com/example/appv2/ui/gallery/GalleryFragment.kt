@@ -36,8 +36,6 @@ class GalleryFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
-        val galleryViewModel =
-            ViewModelProvider(this).get(GalleryViewModel::class.java)
 
         _binding = FragmentGalleryBinding.inflate(inflater, container, false)
         val root: View = binding.root

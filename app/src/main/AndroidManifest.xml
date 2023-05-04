@@ -31,6 +31,10 @@
             android:name=".ui.home.HomeFragment"
             android:windowSoftInputMode="adjustResize">
         </activity>
+        <activity
+            android:name=".ui.gallery.GalleryFragment"
+            android:windowSoftInputMode="adjustPan">
+        </activity>
 
     </application>
 

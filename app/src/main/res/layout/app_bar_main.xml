@@ -16,10 +16,21 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/Theme.App.PopupOverlay" />
-
+            app:popupTheme="@style/Theme.App.PopupOverlay">
+            <TextView
+                android:id="@+id/session_placeholder"
+                android:layout_width="75dp"
+                android:layout_height="wrap_content"
+                android:text="Current Session"
+                android:layout_gravity="end"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
     <include layout="@layout/content_main" />
+
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

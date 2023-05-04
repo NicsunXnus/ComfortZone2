@@ -21,6 +21,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Build
 import android.view.*
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -31,6 +32,13 @@ import com.google.gson.reflect.TypeToken
 import java.io.File
 import android.widget.ArrayAdapter
 import android.widget.ListView
+import androidx.annotation.RequiresApi
+import java.time.LocalDateTime
+
+import com.google.gson.*
+import java.lang.reflect.Type
+import java.time.format.DateTimeFormatter
+
 class HomeFragment : Fragment() {
     private lateinit var editTextMessage: EditText
     private lateinit var buttonSubmit: Button
@@ -43,7 +51,9 @@ class HomeFragment : Fragment() {
     private var messagesList = mutableListOf<Message>()
     private lateinit var buttonGetVoices: Button
     private lateinit var manageSessionsFab: FloatingActionButton
+    private lateinit var saveChatButton: FloatingActionButton
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -84,7 +94,6 @@ class HomeFragment : Fragment() {
         manageSessionsFab = root.findViewById(R.id.manageSessionsFab)
         manageSessionsFab.setOnClickListener { showSessionOptionsDialog() }
 
-
         CoroutineScope(Dispatchers.Main).launch {
             val apiKey = sharedViewModel.elevenLabsApiKey.value ?: "No API Key"
 
@@ -120,6 +129,11 @@ class HomeFragment : Fragment() {
         buttonSubmit.setOnLongClickListener {
             Toast.makeText(requireContext(), "Sends chat to the left of the screen", Toast.LENGTH_SHORT).show()
             true
+        }
+
+        saveChatButton = root.findViewById(R.id.fab_save_chat)
+        saveChatButton.setOnClickListener {
+            saveCurrentChat()
         }
 
         buttonGetVoices.setOnClickListener {
@@ -171,16 +185,90 @@ class HomeFragment : Fragment() {
         return root
     }
 
-    private fun saveMessagesList(messagesList: List<Message>) {
+    class LocalDateTimeSerializer : JsonSerializer<LocalDateTime> {
+        @RequiresApi(Build.VERSION_CODES.O)
+        override fun serialize(src: LocalDateTime?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
+            val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+            return JsonPrimitive(src?.format(formatter))
+        }
+    }
+
+    class LocalDateTimeDeserializer : JsonDeserializer<LocalDateTime> {
+        @RequiresApi(Build.VERSION_CODES.O)
+        override fun deserialize(json: JsonElement?, typeOfT: Type?, context: JsonDeserializationContext?): LocalDateTime {
+            val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+            return LocalDateTime.parse(json?.asString, formatter)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun saveChatHistory() {
+        val sharedPreferences = requireActivity().getSharedPreferences("chat_history", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        val gson = GsonBuilder()
+            .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeSerializer())
+            .create()
+        val json = gson.toJson(sharedViewModel.savedChats.value)
+        editor.putString("chat_history", json)
+        editor.apply()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun loadChatHistory(){
+        val json = requireActivity().getSharedPreferences("chat_history", Context.MODE_PRIVATE).getString("chat_history", null)
+        if (json != null) {
+            sharedViewModel.clearHistory()
+            val type = object : TypeToken<MutableList<ChatHistoryItem>>() {}.type
+            val gson = GsonBuilder()
+                .registerTypeAdapter(LocalDateTime::class.java,
+                    HomeFragment.LocalDateTimeDeserializer()
+                )
+                .create()
+            sharedViewModel._savedChats.value = gson.fromJson<MutableList<ChatHistoryItem>>(json, type)
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun saveCurrentChat() {
+        // Save the chat history
+        val chatHistory =
+            sharedViewModel.currentSession.value?.name?.let { ChatHistoryItem(title = it, messages = messagesList.toList(),
+                LocalDateTime.now()) }
+        if (chatHistory != null) {
+            sharedViewModel.addSavedChat(chatHistory)
+        }
+        // Show a message that the chat was saved
+        Toast.makeText(requireContext(), "Chat saved.", Toast.LENGTH_SHORT).show()
+    }
+
+    /*    fun saveChatSessions() {
+        val sharedPreferences = requireActivity().getSharedPreferences("chat_sessions", Context.MODE_PRIVATE)
+        val sessionsJson = Gson().toJson(sharedViewModel.chatSessions.value)
+        sharedPreferences.edit().putString("sessions", sessionsJson).apply()
+    }
+
+    // Call this method to load the chat sessions from SharedPreferences
+    fun loadChatSessions() {
+        val sessionsJson = requireActivity().getSharedPreferences("chat_sessions", Context.MODE_PRIVATE).getString("sessions", null)
+        if (sessionsJson != null) {
+            sharedViewModel.clearChatSessions()
+            val type = object : TypeToken<List<ChatSession>>() {}.type
+            val sessions = Gson().fromJson<List<ChatSession>>(sessionsJson, type)
+            for (i in sessions.indices) {
+                sharedViewModel.addChatSession(sessions[i].name,sessions[i].context,sessions[i].messages)
+            }
+        }
+    }*/
+
+    /*private fun saveMessagesList(messagesList: List<Message>) {
         val sharedPreferences = requireActivity().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         val gson = Gson()
         val json = gson.toJson(messagesList)
         editor.putString("messagesList", json)
         editor.apply()
-    }
+    }*/
 
-    private fun loadMessagesList(): MutableList<Message> {
+   /*private fun loadMessagesList(): MutableList<Message> {
         val sharedPreferences = requireActivity().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
         val gson = Gson()
         val json = sharedPreferences.getString("messagesList", null)
@@ -189,7 +277,7 @@ class HomeFragment : Fragment() {
         } else {
             gson.fromJson(json, object : TypeToken<MutableList<Message>>() {}.type)
         }
-    }
+    }*/
 
     private fun showSessionOptionsDialog() {
         val items = arrayOf("Save current session", "Load another session")
@@ -213,6 +301,14 @@ class HomeFragment : Fragment() {
                 val sessionName = editText.text.toString()
                 val sessionMessagesList = messagesList.toList()
                 sharedViewModel.addChatSession(sessionName, sharedViewModel.systemMessageContent.value ?: "",sessionMessagesList)
+            }
+            .setNeutralButton("Update") {  _, _ ->
+                val sessionName = sharedViewModel.currentSession.value?.name
+                val sessionMessagesList = messagesList.toList()
+                if (sessionName != null) {
+                    sharedViewModel.updateChatSession(sessionName, sharedViewModel.systemMessageContent.value
+                        ?: "", sessionMessagesList)
+                }
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -267,6 +363,11 @@ class HomeFragment : Fragment() {
                     addMessageToChatContainer(messagesList[i].content, true)
                 }
             }
+            //Adds Context
+            val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_change_system_message, null)
+            val systemMsgStore = dialogView.findViewById<TextView>(R.id.systemMsgDisplay)
+            systemMsgStore.text = sharedViewModel.currentSession.value?.context
+
         }
 
         sessionsListView.setOnItemLongClickListener { _, _, position, _ ->
@@ -287,9 +388,7 @@ class HomeFragment : Fragment() {
         builder.setNegativeButton("Cancel", null)
         builder.show()
     }
-
-
-
+    /*
     private fun saveContext() {
         val sharedPreferences = requireActivity().getSharedPreferences("context", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
@@ -307,6 +406,7 @@ class HomeFragment : Fragment() {
             systemMsgStore.text = context
         }
     }
+    */
 
     // Call this method to save the chat sessions to SharedPreferences
     fun saveChatSessions() {
@@ -327,19 +427,24 @@ class HomeFragment : Fragment() {
             }
         }
     }
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onPause() {
         super.onPause()
         chatContainer.removeAllViews()
-        saveMessagesList(messagesList)
-        saveContext()
+        //saveMessagesList(messagesList)
+        //saveContext()
         saveChatSessions()
+        saveChatHistory()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onResume() {
         super.onResume()
+        loadChatSessions()
+        loadChatHistory()
         messagesList.clear()
-        messagesList.addAll(loadMessagesList())
-        loadContext()
+        //messagesList.addAll(loadMessagesList())
+        //loadContext()
         //Adds back the chat messages
         for (i in messagesList.indices) {
             if (i % 2 != 0) {
@@ -348,7 +453,7 @@ class HomeFragment : Fragment() {
                 addMessageToChatContainer(messagesList[i].content, true)
             }
         }
-        loadChatSessions()
+
     }
 
     private fun showChangeSystemMessageDialog() {

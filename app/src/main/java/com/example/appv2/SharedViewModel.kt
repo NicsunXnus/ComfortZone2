@@ -30,6 +30,20 @@ class SharedViewModel : ViewModel() {
     internal val _savedChats = MutableLiveData(mutableListOf<ChatHistoryItem>())
     val savedChats: LiveData<MutableList<ChatHistoryItem>> get() = _savedChats
 
+    private var _characterCount = MutableLiveData<Int>()
+    val characterCount: LiveData<Int> get() = _characterCount
+
+    fun addCharacterCount(count: Int) {
+        if (_characterCount.value == null) {
+            _characterCount.value = 0
+        }
+        _characterCount.value = _characterCount.value?.plus(count)
+    }
+
+    fun initCharacterCount(context: Context) {
+        val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        _characterCount.value = sharedPreferences.getInt("character_count", 0)
+    }
     fun setOpenAIKey(key: String) {
         _openAIKey.value = key
     }

@@ -18,23 +18,37 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContentProviderCompat.requireContext
 
 import androidx.lifecycle.ViewModelProvider
+import com.airbnb.lottie.LottieAnimationView
 import com.example.appv2.databinding.ActivityMainBinding
+import com.example.appv2.functionality.OnDoubleClickListener
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
     private lateinit var sharedViewModel: SharedViewModel
-
+    private lateinit var narrateIndicator: LottieAnimationView
+    private lateinit var typingIndicator: LottieAnimationView
+    private lateinit var handsIndicator: LottieAnimationView
+    private lateinit var currentSession :TextView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setSupportActionBar(binding.appBarMain.toolbar)
+        narrateIndicator = findViewById<LottieAnimationView>(R.id.narrateIndicator)
+        typingIndicator =  findViewById<LottieAnimationView>(R.id.typingIndicator2)
+        handsIndicator = findViewById<LottieAnimationView>(R.id.handsTyping)
+        currentSession = findViewById<TextView>(R.id.session_placeholder)
 
+        narrateIndicator.visibility = View.GONE
+        typingIndicator.visibility = View.GONE
+        handsIndicator.visibility = View.GONE
+        currentSession.visibility = View.GONE
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_content_main)
@@ -62,6 +76,21 @@ class MainActivity : AppCompatActivity() {
         val session_name = findViewById<TextView>(R.id.session_placeholder)
         session_name.setOnLongClickListener {
             Toast.makeText(this, sharedViewModel.currentSession.value?.name ?: "No session name", Toast.LENGTH_SHORT).show()
+            true
+        }
+        val relax = binding.navView.getHeaderView(0).findViewById<LottieAnimationView>(R.id.relax)
+        relax.setOnClickListener(OnDoubleClickListener(
+            singleClickAction = {
+                relax.cancelAnimation()
+                relax.speed = 1.0f
+            },
+            doubleClickAction = {
+                relax.resumeAnimation()
+            }
+        ))
+
+        relax.setOnLongClickListener {
+            relax.speed = 2.0f
             true
         }
     }

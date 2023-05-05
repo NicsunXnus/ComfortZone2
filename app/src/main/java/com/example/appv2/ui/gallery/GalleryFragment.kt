@@ -19,7 +19,12 @@ import android.text.Spanned
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.widget.Button
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContentProviderCompat
+import com.airbnb.lottie.LottieAnimationView
+import com.example.appv2.R
 import com.example.appv2.SharedViewModel
+import com.google.gson.Gson
 
 
 class GalleryFragment : Fragment() {
@@ -55,7 +60,12 @@ class GalleryFragment : Fragment() {
         val submitElevenLabButton: Button = binding.buttonSubmitElevenlabApiKey
         val openAIKeyTextView: TextView = binding.textViewOpenaiApiKey
         val elevenLabKeyTextView: TextView = binding.textViewElevenlabApiKey
-
+        val characterCount: TextView = binding.elevenLabUsage
+        sharedViewModel.initCharacterCount(requireContext())
+        if (sharedViewModel.characterCount.value == null) {
+            sharedViewModel.addCharacterCount(0)
+        }
+        characterCount.text = characterCount.text.toString() + sharedViewModel.characterCount.value
         loadApiKeysFromSharedPreferences()
 
         submitOpenAIButton.setOnClickListener {
@@ -63,6 +73,19 @@ class GalleryFragment : Fragment() {
             passOpenAIKey(openAIKey)
             openAIKeyTextView.text = "OpenAI API Key: $openAIKey"
             saveApiKeyToSharedPreferences("openai_api_key", openAIKey)
+        }
+
+        characterCount.setOnLongClickListener {
+            AlertDialog.Builder(requireContext())
+                .setTitle("Delete Character Count")
+                .setMessage("Are you sure you want to delete?")
+                .setPositiveButton("Yes") { _, _ ->
+                    setCharacterCount(0)
+                    characterCount.text = "Character Count: 0"
+                }
+                .setNegativeButton("No", null)
+                .show()
+            true
         }
 
         submitElevenLabButton.setOnClickListener {
@@ -117,6 +140,11 @@ class GalleryFragment : Fragment() {
         return root
     }
 
+    private fun setCharacterCount(count: Int) {
+        val sharedPreferences = requireContext().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        sharedPreferences.edit().putInt("character_count", count).apply()
+    }
+
     private fun passOpenAIKey(openAIKey: String) {
         // Use the OpenAI API key here or pass it to another part of your app
         sharedViewModel.setOpenAIKey(openAIKey)
@@ -137,6 +165,22 @@ class GalleryFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         loadApiKeysFromSharedPreferences()
+        //loadCharacterCount()
+    }
+    override fun onPause() {
+        super.onPause()
+        ///saveCharacterCount()
+    }
+    private fun loadCharacterCount() {
+        val sharedPreferences = requireActivity().getSharedPreferences("character_count", Context.MODE_PRIVATE)
+        val count = sharedPreferences.getString("count", "")
+        val characterCount: TextView = binding.elevenLabUsage
+        characterCount.text = characterCount.text.toString() + count
+    }
+    private fun saveCharacterCount() {
+        val sharedPreferences = requireActivity().getSharedPreferences("character_count", Context.MODE_PRIVATE)
+        val sessionsJson = Gson().toJson(sharedViewModel.characterCount.value)
+        sharedPreferences.edit().putString("count", sessionsJson).apply()
     }
     private fun loadApiKeysFromSharedPreferences() {
         val sharedPreferences = requireActivity().getSharedPreferences("apikeys", Context.MODE_PRIVATE)

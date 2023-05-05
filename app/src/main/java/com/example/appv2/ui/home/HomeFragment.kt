@@ -35,6 +35,7 @@ import java.io.File
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.lifecycleScope
 import com.airbnb.lottie.LottieAnimationView
 import java.time.LocalDateTime
 
@@ -93,6 +94,8 @@ class HomeFragment : Fragment() {
             Toast.makeText(requireContext(), "Clears chat", Toast.LENGTH_SHORT).show()
             true // Return true to indicate the long click event is consumed
         }
+
+        sharedViewModel.initCharacterCount(requireContext())
 
         manageSessionsFab = root.findViewById(R.id.manageSessionsFab)
         manageSessionsFab.setOnClickListener { showSessionOptionsDialog() }
@@ -438,6 +441,14 @@ class HomeFragment : Fragment() {
         //saveContext()
         saveChatSessions()
         saveChatHistory()
+        val narrateIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.narrateIndicator)
+        val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.typingIndicator2)
+        val handsIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.handsTyping)
+        val currentSession = requireActivity().findViewById<TextView>(R.id.session_placeholder)
+        narrateIndicator.visibility = View.GONE
+        typingIndicator.visibility = View.GONE
+        handsIndicator.visibility = View.GONE
+        currentSession.visibility = View.GONE
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -456,7 +467,14 @@ class HomeFragment : Fragment() {
                 addMessageToChatContainer(messagesList[i].content, true)
             }
         }
-
+        val narrateIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.narrateIndicator)
+        val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.typingIndicator2)
+        val handsIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.handsTyping)
+        val currentSession = requireActivity().findViewById<TextView>(R.id.session_placeholder)
+        narrateIndicator.visibility = View.VISIBLE
+        typingIndicator.visibility = View.VISIBLE
+        handsIndicator.visibility = View.VISIBLE
+        currentSession.visibility = View.VISIBLE
     }
 
     private fun showChangeSystemMessageDialog() {
@@ -497,6 +515,16 @@ class HomeFragment : Fragment() {
         handler.post(runnable)
     }
 
+    private fun typingAnimation(show : Boolean) {
+        val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.handsTyping)
+        //typingIndicator.visibility = if (show) View.VISIBLE else View.GONE
+        if (show) {
+            typingIndicator.playAnimation()
+        } else {
+            typingIndicator.cancelAnimation()
+        }
+    }
+
     private fun submitMessage() {
         val message = editTextMessage.text.toString().trim()
         if (message.isNotEmpty()) {
@@ -508,11 +536,15 @@ class HomeFragment : Fragment() {
             // Fetch a reply from the ChatGPT API
             CoroutineScope(Dispatchers.Main).launch {
                 sharedViewModel.openAIKey.value?.let { apiKey ->
+                    showTypingAnimation2(true)
                     val chatGptResponse = fetchChatGptResponse(message, apiKey)
                     chatGptResponse?.let { response ->
                         val reply = response.choices.firstOrNull()?.message?.content?.trim()
                         reply?.let {
+                            typingAnimation(true)
                             addMessageToChatContainer(it, false)
+                            sharedViewModel.addCharacterCount(countCharacters(it))
+                            sharedViewModel.characterCount.value?.let { it1 -> setCharacterCount(it1) }
                             //addMessageToChatContainer("", false)
                             val lastSystemResponse = Message("system", reply)
                             messagesList.add(lastSystemResponse)
@@ -527,7 +559,10 @@ class HomeFragment : Fragment() {
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
-                            generateVoiceOutput(it, voiceName, narrateApiKey)
+                            showNarrateAnimation(true)
+                            generateVoiceOutput(it, voiceName, narrateApiKey) {
+                                showNarrateAnimation(false)
+                            }
                         }
                     }
                 } ?: run {
@@ -559,6 +594,16 @@ class HomeFragment : Fragment() {
             }
             updateRemainingCharacters()
         }
+    }
+
+    private fun getCharacterCount(): Int {
+        val sharedPreferences = requireContext().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        return sharedPreferences.getInt("character_count", 0)
+    }
+
+    private fun setCharacterCount(count: Int) {
+        val sharedPreferences = requireContext().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+        sharedPreferences.edit().putInt("character_count", count).apply()
     }
 
     private fun updateRemainingCharacters() {
@@ -633,9 +678,15 @@ class HomeFragment : Fragment() {
         }
         chatContainer.addView(textView)
     }*/
-    /*private fun showTypingAnimation(show: Boolean) {
-        requireActivity().findViewById<ProgressBar>(R.id.typingIndicator).visibility = if (show) View.VISIBLE else View.GONE
-    }*/
+    private fun showNarrateAnimation(show: Boolean) {
+        val narrateIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.narrateIndicator)
+        //typingIndicator.visibility = if (show) View.VISIBLE else View.GONE
+        if (show) {
+            narrateIndicator.playAnimation()
+        } else {
+            narrateIndicator.cancelAnimation()
+        }
+    }
     private fun showTypingAnimation2(show: Boolean) {
         val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.typingIndicator2)
         //typingIndicator.visibility = if (show) View.VISIBLE else View.GONE
@@ -665,13 +716,17 @@ class HomeFragment : Fragment() {
         if (isUserMessage) {
             textView.text = message
         } else {
-            showTypingAnimation2(true)
+
             animateTextResponse(textView, message) {
                 showTypingAnimation2(false)
+                typingAnimation(false)
             }
+
         }
     }
-
+    fun countCharacters(input: String): Int {
+        return input.length
+    }
 
     fun clearChat() {
         chatContainer.removeAllViews()
@@ -732,7 +787,7 @@ class HomeFragment : Fragment() {
             .create(NarrateApiService::class.java)
     }
 
-    private suspend fun generateVoiceOutput(text: String, voiceName: String, apiKey: String) {
+    private suspend fun generateVoiceOutput(text: String, voiceName: String, apiKey: String, callback: ()->Unit) {
         val voiceSettings = VoiceSettings(stability = 0.6f, similarity_boost = 0.8f)
         val requestBody = NarrateRequest(text, voiceSettings)
         try {
@@ -747,13 +802,16 @@ class HomeFragment : Fragment() {
                     val mediaPlayer = MediaPlayer().apply {
                         setDataSource(requireContext(), Uri.fromFile(tempFile))
                         prepare()
+                        setOnCompletionListener {
+                            callback()
+                        }
                         start()
                     }
                 }
             } else {
                 Log.e("HomeFragment", "Unsuccessful Narrate API response, code: ${response.code()}, errorBody: ${response.errorBody()}")
                 Toast.makeText(requireContext(),"Unsuccessful Narrate API response, code: ${response.code()}, errorBody: ${response.errorBody()}", Toast.LENGTH_SHORT).show()
-
+                showNarrateAnimation(false)
             }
         } catch (e: Exception) {
             Log.e("HomeFragment", "Error during Narrate API call: ${e.message}")

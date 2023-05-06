@@ -61,12 +61,22 @@ class GalleryFragment : Fragment() {
         val openAIKeyTextView: TextView = binding.textViewOpenaiApiKey
         val elevenLabKeyTextView: TextView = binding.textViewElevenlabApiKey
         val characterCount: TextView = binding.elevenLabUsage
+        val elevenLabSwitch : TextView = binding.elevenLabSwitch
         sharedViewModel.initCharacterCount(requireContext())
         if (sharedViewModel.characterCount.value == null) {
             sharedViewModel.addCharacterCount(0)
         }
         characterCount.text = characterCount.text.toString() + sharedViewModel.characterCount.value
         loadApiKeysFromSharedPreferences()
+
+        sharedViewModel.initElevenLabAPIkeySwitch()
+        elevenLabSwitch.text = elevenLabSwitch.text.toString() + sharedViewModel.useElevenLabApiKey.value
+
+        elevenLabSwitch.setOnLongClickListener {
+            sharedViewModel.switchElevenLabApiKey()
+            elevenLabSwitch.text = "ElevenLabSwitch: " + sharedViewModel.useElevenLabApiKey.value
+            true
+        }
 
         submitOpenAIButton.setOnClickListener {
             val openAIKey = binding.editOpenaiApiKey.text.toString()

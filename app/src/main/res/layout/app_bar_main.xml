@@ -65,6 +65,7 @@
                     android:layout_width="75dp"
                     android:layout_height="wrap_content"
                     android:text="Current Session"
+                    android:layout_marginTop="10dp"
                     android:layout_gravity="end"
                     android:textColor="@color/white"
                     android:textStyle="bold"

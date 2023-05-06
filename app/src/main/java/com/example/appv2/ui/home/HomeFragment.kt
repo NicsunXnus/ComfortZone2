@@ -701,6 +701,7 @@ class HomeFragment : Fragment() {
         val textView = TextView(context).apply {
             text = ""
             textSize = 18f
+            setTextIsSelectable(true)
             setBackgroundResource(if (isUserMessage) R.drawable.speech_bubble_background else R.drawable.speech_bubble_background_reply)
             setPadding(16, 8, 16, 8) // Add padding around the text
             layoutParams = LinearLayout.LayoutParams(
@@ -788,33 +789,47 @@ class HomeFragment : Fragment() {
     }
 
     private suspend fun generateVoiceOutput(text: String, voiceName: String, apiKey: String, callback: ()->Unit) {
-        val voiceSettings = VoiceSettings(stability = 0.6f, similarity_boost = 0.8f)
-        val requestBody = NarrateRequest(text, voiceSettings)
-        try {
-            val response = narrateApiService.generateVoice(voiceName, apiKey, requestBody)
-            if (response.isSuccessful) {
-                val audioBytes = response.body()?.bytes()
-                audioBytes?.let {
-                    val tempFile = File.createTempFile("tempAudio", "mp3", requireContext().cacheDir).apply {
-                        writeBytes(it)
-                        deleteOnExit()
-                    }
-                    val mediaPlayer = MediaPlayer().apply {
-                        setDataSource(requireContext(), Uri.fromFile(tempFile))
-                        prepare()
-                        setOnCompletionListener {
-                            callback()
+        if (sharedViewModel.useElevenLabApiKey.value == true) {
+            val voiceSettings = VoiceSettings(stability = 0.6f, similarity_boost = 0.8f)
+            val requestBody = NarrateRequest(text, voiceSettings)
+            try {
+                val response = narrateApiService.generateVoice(voiceName, apiKey, requestBody)
+                if (response.isSuccessful) {
+                    val audioBytes = response.body()?.bytes()
+                    audioBytes?.let {
+                        val tempFile =
+                            File.createTempFile("tempAudio", "mp3", requireContext().cacheDir)
+                                .apply {
+                                    writeBytes(it)
+                                    deleteOnExit()
+                                }
+                        val mediaPlayer = MediaPlayer().apply {
+                            setDataSource(requireContext(), Uri.fromFile(tempFile))
+                            prepare()
+                            setOnCompletionListener {
+                                callback()
+                            }
+                            start()
                         }
-                        start()
                     }
+                } else {
+                    Log.e(
+                        "HomeFragment",
+                        "Unsuccessful Narrate API response, code: ${response.code()}, errorBody: ${response.errorBody()}"
+                    )
+                    Toast.makeText(
+                        requireContext(),
+                        "Unsuccessful Narrate API response, code: ${response.code()}, errorBody: ${response.errorBody()}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    showNarrateAnimation(false)
                 }
-            } else {
-                Log.e("HomeFragment", "Unsuccessful Narrate API response, code: ${response.code()}, errorBody: ${response.errorBody()}")
-                Toast.makeText(requireContext(),"Unsuccessful Narrate API response, code: ${response.code()}, errorBody: ${response.errorBody()}", Toast.LENGTH_SHORT).show()
-                showNarrateAnimation(false)
+            } catch (e: Exception) {
+                Log.e("HomeFragment", "Error during Narrate API call: ${e.message}")
             }
-        } catch (e: Exception) {
-            Log.e("HomeFragment", "Error during Narrate API call: ${e.message}")
+        } else {
+            val voiceIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.narrateIndicator)
+            voiceIndicator.cancelAnimation()
         }
     }
 

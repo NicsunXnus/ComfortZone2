@@ -18,6 +18,9 @@ class SharedViewModel : ViewModel() {
     //a4d7726f7a83a1942e92ce4c0a283be9
     val elevenLabsApiKey: LiveData<String> get() = _elevenLabsApiKey
 
+    private var _useElevenLabApiKey = MutableLiveData<Boolean>()
+    val useElevenLabApiKey : LiveData<Boolean> get() = _useElevenLabApiKey
+
     private val _systemMessageContent = MutableLiveData<String>()
     val systemMessageContent: LiveData<String> get() = _systemMessageContent
 
@@ -33,6 +36,16 @@ class SharedViewModel : ViewModel() {
     private var _characterCount = MutableLiveData<Int>()
     val characterCount: LiveData<Int> get() = _characterCount
 
+    fun initElevenLabAPIkeySwitch() {
+        _useElevenLabApiKey.value = false
+    }
+    fun switchElevenLabApiKey() {
+        if (_useElevenLabApiKey.value == true) {
+            _useElevenLabApiKey.value = false
+        } else {
+            _useElevenLabApiKey.value = true
+        }
+    }
     fun addCharacterCount(count: Int) {
         if (_characterCount.value == null) {
             _characterCount.value = 0

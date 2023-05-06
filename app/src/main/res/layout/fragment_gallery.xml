@@ -109,7 +109,7 @@
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="@id/text_view_elevenlab_api_key"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.05"
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/elevenlab_api_link"
         tools:ignore="TouchTargetSizeCheck" />
@@ -125,7 +125,7 @@
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.05"
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/text_view_openai_api_key"
         tools:ignore="TouchTargetSizeCheck" />
@@ -151,6 +151,16 @@
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/button_submit_elevenlab_api_key" />
+
+    <TextView
+        android:id="@+id/elevenLabSwitch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="ElevenLabSwitch: "
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/elevenLabUsage" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

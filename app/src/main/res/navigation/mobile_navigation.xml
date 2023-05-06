@@ -8,18 +8,18 @@
     <fragment
         android:id="@+id/nav_home"
         android:name="com.example.appv2.ui.home.HomeFragment"
-        android:label="@string/menu_home"
+        android:label="🏠"
         tools:layout="@layout/fragment_home" />
 
     <fragment
         android:id="@+id/nav_gallery"
         android:name="com.example.appv2.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
+        android:label="API Keys🔑"
         tools:layout="@layout/fragment_gallery" />
     <fragment
         android:id="@+id/chat_history"
         android:name="com.example.appv2.ui.history.ChatHistory"
-        android:label="Chat History"
+        android:label="Chat History📜"
         tools:layout="@layout/fragment_history" />
 
 </navigation>

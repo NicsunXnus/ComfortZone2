@@ -29,47 +29,47 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
-            <com.airbnb.lottie.LottieAnimationView
-                android:id="@+id/typingIndicator2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="visible"
-                app:lottie_autoPlay="false"
-                app:lottie_fileName="cycling.json"
-                app:lottie_loop="true"
-                app:lottie_speed="1" />
-
                 <com.airbnb.lottie.LottieAnimationView
-                    android:id="@+id/narrateIndicator"
+                    android:id="@+id/typingIndicator2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:visibility="visible"
                     app:lottie_autoPlay="false"
-                    app:lottie_fileName="speaker.json"
+                    app:lottie_fileName="cycling.json"
                     app:lottie_loop="true"
                     app:lottie_speed="1" />
+
+                    <com.airbnb.lottie.LottieAnimationView
+                        android:id="@+id/narrateIndicator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="visible"
+                        app:lottie_autoPlay="false"
+                        app:lottie_fileName="speaker.json"
+                        app:lottie_loop="true"
+                        app:lottie_speed="1" />
 
                 <com.airbnb.lottie.LottieAnimationView
                     android:id="@+id/handsTyping"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:visibility="visible"
                     android:layout_marginRight="160dp"
+                    android:visibility="visible"
                     app:lottie_autoPlay="false"
                     app:lottie_fileName="hands_typing.json"
                     app:lottie_loop="true"
                     app:lottie_speed="1" />
 
                 <TextView
-                    android:id="@+id/session_placeholder"
-                    android:layout_width="75dp"
-                    android:layout_height="wrap_content"
-                    android:text="Current Session"
-                    android:layout_marginTop="10dp"
-                    android:layout_gravity="end"
-                    android:textColor="@color/white"
-                    android:textStyle="bold"
-                    app:layout_constraintTop_toTopOf="parent" />
+                        android:id="@+id/session_placeholder"
+                        android:layout_width="75dp"
+                        android:layout_height="wrap_content"
+                        android:text="Current Session"
+                        android:layout_marginTop="10dp"
+                        android:layout_gravity="end"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        app:layout_constraintTop_toTopOf="parent" />
             </FrameLayout>
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>

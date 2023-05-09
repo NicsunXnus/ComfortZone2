@@ -32,6 +32,7 @@
         android:layout_height="588dp"
         android:overScrollMode="always"
         android:scrollbars="vertical"
+        android:clickable="true"
         app:layout_constraintBottom_toTopOf="@id/remaining_characters"
         app:layout_constraintTop_toBottomOf="@+id/changeSystemMessageButton"
         app:layout_constraintEnd_toEndOf="parent"
@@ -45,10 +46,13 @@
             android:id="@+id/chatMessagesContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusableInTouchMode="true"
             android:orientation="vertical"
             android:padding="16dp"
             android:scrollbars="vertical"
-            android:weightSum="1">
+            android:weightSum="1"
+            tools:ignore="SpeakableTextPresentCheck">
 
             <!-- Add your chat messages layout here -->
         </LinearLayout>
@@ -124,34 +128,50 @@
 
         <EditText
             android:id="@+id/editTextMessage"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:ems="10"
             android:hint="Type your message"
             android:imeOptions="actionSend"
-            android:inputType="text"
+            android:inputType="textMultiLine"
+            android:minLines="1"
+            android:maxLines="5"
             tools:ignore="TouchTargetSizeCheck" />
 
         <Button
             android:id="@+id/buttonSubmit"
-            android:layout_width="77dp"
+            android:layout_width="55dp"
             android:layout_height="wrap_content"
-            android:text="Submit"
-            android:textSize="10dp"
+            android:text="💬"
+            app:backgroundTint="@color/teal_200"
+            android:textSize="20dp"
+            android:layout_marginRight="1dp"
             tools:ignore="TextSizeCheck" />
 
         <!-- home_fragment.xml -->
         <Button
             android:id="@+id/get_voices_button"
-            android:layout_width="wrap_content"
+            android:layout_width="53dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:text="Get Voices"
-            android:textSize="10dp"
-            app:layout_constraintBottom_toTopOf="@id/buttonSubmit"
-            app:layout_constraintEnd_toEndOf="@id/buttonSubmit"
-            app:layout_constraintStart_toStartOf="@id/buttonSubmit"
+            app:backgroundTint="@color/teal_200"
+            android:text="🗣"
+            android:textSize="20dp"
+            android:layout_marginRight="1dp"
+            app:layout_constraintStart_toEndOf="@id/buttonSubmit"
+            tools:ignore="TextSizeCheck" />
+
+        <Button
+            android:id="@+id/voice_to_text"
+            android:layout_width="54dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:layout_marginRight="2dp"
+            app:backgroundTint="@color/teal_200"
+            android:text="🎤"
+            android:textSize="20dp"
+            app:layout_constraintStart_toEndOf="@id/get_voices_button"
             tools:ignore="TextSizeCheck" />
 
     </LinearLayout>

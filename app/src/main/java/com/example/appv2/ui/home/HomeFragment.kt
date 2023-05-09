@@ -1,7 +1,10 @@
 package com.example.appv2.ui.home
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.*
@@ -24,7 +27,11 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.view.*
+import android.view.inputmethod.InputMethodManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 
@@ -35,15 +42,21 @@ import java.io.File
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.lifecycleScope
+
+
 import com.airbnb.lottie.LottieAnimationView
 import java.time.LocalDateTime
 
 import com.google.gson.*
+import kotlinx.coroutines.Job
 import java.lang.reflect.Type
 import java.time.format.DateTimeFormatter
+import java.util.*
 
-class HomeFragment : Fragment() {
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+
+class HomeFragment : Fragment(), RecognitionListener {
     private lateinit var editTextMessage: EditText
     private lateinit var buttonSubmit: Button
     private lateinit var spinnerVoice: Spinner
@@ -56,7 +69,46 @@ class HomeFragment : Fragment() {
     private lateinit var buttonGetVoices: Button
     private lateinit var manageSessionsFab: FloatingActionButton
     private lateinit var saveChatButton: FloatingActionButton
+    private lateinit var voiceToTextButton: Button
+    private lateinit var speechRecognizer: SpeechRecognizer
+    private var handler: Handler? = null
 
+    override fun onReadyForSpeech(params: Bundle?) {}
+    override fun onBeginningOfSpeech() {}
+    override fun onRmsChanged(rmsdB: Float) {}
+    override fun onBufferReceived(buffer: ByteArray?) {}
+    override fun onEndOfSpeech() {}
+    override fun onError(error: Int) {
+        showTypingAnimation2(false)
+        Toast.makeText(requireContext(),getErrorText(error),Toast.LENGTH_SHORT).show()
+    }
+    private fun getErrorText(errorCode: Int): String {
+        return when (errorCode) {
+            SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
+            SpeechRecognizer.ERROR_CLIENT -> "Client side error"
+            SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
+            SpeechRecognizer.ERROR_NETWORK -> "Network error"
+            SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network timeout"
+            SpeechRecognizer.ERROR_NO_MATCH -> "No match"
+            SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Recognition service is busy"
+            SpeechRecognizer.ERROR_SERVER -> "Server error"
+            SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
+            else -> "Unknown error"
+        }
+    }
+
+    override fun onResults(results: Bundle?) {
+        showTypingAnimation2(true)
+        val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+        if (matches != null && matches.isNotEmpty()) {
+            editTextMessage.append(" " + matches[0])
+        }
+        showTypingAnimation2(false)
+    }
+    override fun onPartialResults(partialResults: Bundle?) {}
+    override fun onEvent(eventType: Int, params: Bundle?) {}
+
+    @SuppressLint("RestrictedApi")
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -71,8 +123,20 @@ class HomeFragment : Fragment() {
         spinnerVoice = root.findViewById(R.id.spinnerVoice)
         chatContainer = root.findViewById(R.id.chatMessagesContainer)
         buttonGetVoices = root.findViewById(R.id.get_voices_button)
+        voiceToTextButton = root.findViewById(R.id.voice_to_text)
         sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
         remainingCharactersTextView = root.findViewById(R.id.remaining_characters)
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+        speechRecognizer.setRecognitionListener(this)
+
+        voiceToTextButton.setOnClickListener {
+
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
+            speechRecognizer.startListening(intent)
+            Toast.makeText(requireContext(),"Recording",Toast.LENGTH_SHORT).show()
+        }
 
         updateRemainingCharacters()
 
@@ -80,6 +144,14 @@ class HomeFragment : Fragment() {
             Toast.makeText(requireContext(), "The Chat Box", Toast.LENGTH_SHORT).show()
             true
         }
+        val onClickListener = View.OnClickListener { view ->
+            // Hide keyboard
+            val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
+
+            // Start loader to check parameters...
+        }
+        chatContainer.setOnClickListener(onClickListener)
 
         fab = root.findViewById(R.id.fab)
         fab.setOnClickListener {
@@ -188,9 +260,30 @@ class HomeFragment : Fragment() {
             true
         }
 
+        editTextMessage.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                // EditText is focused, make FABs transparent
+                fab.alpha = 0.3f
+                manageSessionsFab.alpha = 0.3f
+                saveChatButton.alpha = 0.3f
+            } else {
+                // EditText lost focus, make FABs fully opaque
+                fab.alpha = 1f
+                manageSessionsFab.alpha = 1f
+                saveChatButton.alpha = 1f
+            }
+        }
+
         return root
     }
 
+    fun hideSoftKeyboard(activity: Activity) {
+        val inputMethodManager = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(activity.currentFocus?.windowToken, 0)
+    }
+
+    private fun View.hideKeyboard() = ViewCompat.getWindowInsetsController(this)
+        ?.hide(WindowInsetsCompat.Type.ime())
     class LocalDateTimeSerializer : JsonSerializer<LocalDateTime> {
         @RequiresApi(Build.VERSION_CODES.O)
         override fun serialize(src: LocalDateTime?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
@@ -364,9 +457,9 @@ class HomeFragment : Fragment() {
             //Adds back the chat messages
             for (i in messagesList.indices) {
                 if (i % 2 != 0) {
-                    addMessageToChatContainer(messagesList[i].content, false)
+                    addMessageToChatContainerNoAnimation(messagesList[i].content, false)
                 } else {
-                    addMessageToChatContainer(messagesList[i].content, true)
+                    addMessageToChatContainerNoAnimation(messagesList[i].content, true)
                 }
             }
             //Adds Context
@@ -460,13 +553,13 @@ class HomeFragment : Fragment() {
         //messagesList.addAll(loadMessagesList())
         //loadContext()
         //Adds back the chat messages
-        for (i in messagesList.indices) {
+        /*for (i in messagesList.indices) {
             if (i % 2 != 0) {
-                addMessageToChatContainer(messagesList[i].content, false)
+                addMessageToChatContainerNoAnimation(messagesList[i].content, false)
             } else {
-                addMessageToChatContainer(messagesList[i].content, true)
+                addMessageToChatContainerNoAnimation(messagesList[i].content, true)
             }
-        }
+        }*/
         val narrateIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.narrateIndicator)
         val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.typingIndicator2)
         val handsIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.handsTyping)
@@ -498,21 +591,24 @@ class HomeFragment : Fragment() {
     }
 
     private fun animateTextResponse(textView: TextView, message: String, onAnimationComplete: (() -> Unit)? = null) {
+        fab.alpha = 0.3f
+        manageSessionsFab.alpha = 0.3f
+        saveChatButton.alpha = 0.3f
         var index = 0
         val animDuration = 40L // Duration for each character animation in milliseconds
-        val handler = Handler(Looper.getMainLooper())
+        handler = Handler(Looper.getMainLooper())
         val runnable = object : Runnable {
             override fun run() {
                 if (index < message.length) {
                     textView.text = textView.text.toString() + message[index]
                     index++
-                    handler.postDelayed(this, animDuration)
+                    handler?.postDelayed(this, animDuration)
                 } else {
                     onAnimationComplete?.invoke()
                 }
             }
         }
-        handler.post(runnable)
+        handler?.post(runnable)
     }
 
     private fun typingAnimation(show : Boolean) {
@@ -717,13 +813,36 @@ class HomeFragment : Fragment() {
         if (isUserMessage) {
             textView.text = message
         } else {
-
             animateTextResponse(textView, message) {
                 showTypingAnimation2(false)
                 typingAnimation(false)
+                fab.alpha = 1f
+                manageSessionsFab.alpha = 1f
+                saveChatButton.alpha = 1f
             }
 
         }
+    }
+
+    private fun addMessageToChatContainerNoAnimation(message: String, isUserMessage: Boolean) {
+        val textView = TextView(context).apply {
+            text = ""
+            textSize = 18f
+            setTextIsSelectable(true)
+            setBackgroundResource(if (isUserMessage) R.drawable.speech_bubble_background else R.drawable.speech_bubble_background_reply)
+            setPadding(16, 8, 16, 8) // Add padding around the text
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(8, 8, 8, 8) // Add margins between messages
+                gravity = if (isUserMessage) Gravity.START else Gravity.END
+            }
+        }
+        chatContainer.addView(textView)
+
+        textView.text = message
+
     }
     fun countCharacters(input: String): Int {
         return input.length
@@ -835,6 +954,9 @@ class HomeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        speechRecognizer.destroy()
+        handler?.removeCallbacksAndMessages(null)
+        handler = null
         _binding = null
     }
 }

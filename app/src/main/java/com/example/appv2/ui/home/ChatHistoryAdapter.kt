@@ -2,15 +2,21 @@ package com.example.appv2.ui.home
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Typeface
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appv2.R
 import com.example.appv2.SharedViewModel
+import java.time.format.DateTimeFormatter
 
 // Modify the input type to List<ChatHistoryItem>
 class ChatHistoryAdapter(private val sharedViewModel: SharedViewModel,private val chatHistoryItems: MutableList<ChatHistoryItem>) :
@@ -53,12 +59,33 @@ class ChatHistoryAdapter(private val sharedViewModel: SharedViewModel,private va
         return ViewHolder(view)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val chatHistoryItem = chatHistoryItems[position]
-        val messages = chatHistoryItem.messages.joinToString(separator = "\n") { it.content }
+        //val messages = chatHistoryItem.messages.joinToString(separator = "\n") { it.content }
+        val messages = chatHistoryItem.messages.mapIndexed { index, message ->
+            val emoji = if (index % 2 == 0) "😀" else "😎"
+            "$emoji: ${message.content}\n\n"
+        }.joinToString(separator = "")
+
         holder.chatTitle.text = "${chatHistoryItem.title}"
-        holder.timestamp.text = chatHistoryItem.timestamp.toString()
+        holder.chatTitle.textSize = 30f
+        holder.chatTitle.setTypeface(null, Typeface.BOLD)
+        holder.timestamp.text = chatHistoryItem.timestamp.format(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        holder.timestamp.setTypeface(null, Typeface.ITALIC)
         holder.chatMsg.text = messages
+        holder.chatMsg.textSize = 22f
+        holder.chatMsg.typeface = ResourcesCompat.getFont(holder.itemView.context, R.font.adventprobold)
+
+        val colorA = ContextCompat.getColor(holder.itemView.context, R.color.colorAccent)
+        val colorB = ContextCompat.getColor(holder.itemView.context, R.color.teal_200)
+
+        if (position % 2 == 0) {
+            holder.itemView.setBackgroundColor(colorA)
+        } else {
+            holder.itemView.setBackgroundColor(colorB)
+        }
     }
 
     override fun getItemCount(): Int {

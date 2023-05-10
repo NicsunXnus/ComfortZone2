@@ -7,7 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.appv2.databinding.FragmentGalleryBinding
@@ -21,12 +20,7 @@ import android.text.style.ClickableSpan
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContentProviderCompat
-import com.airbnb.lottie.LottieAnimationView
-import com.example.appv2.R
 import com.example.appv2.SharedViewModel
-import com.google.gson.Gson
-
 
 class GalleryFragment : Fragment() {
 
@@ -67,16 +61,13 @@ class GalleryFragment : Fragment() {
         openAIEditText.setOnClickListener {
             clearApiKeysButton.visibility = View.GONE
             Toast.makeText(requireContext(),"Click the white space to bring back the clear api keys button",Toast.LENGTH_SHORT).show()
-            true
         }
         elevenLabEditText.setOnClickListener {
             clearApiKeysButton.visibility = View.GONE
             Toast.makeText(requireContext(),"Click the white space to bring back the clear api keys button",Toast.LENGTH_SHORT).show()
-            true
         }
         root.setOnClickListener {
             clearApiKeysButton.visibility = View.VISIBLE
-            true
         }
 
         sharedViewModel.initCharacterCount(requireContext())
@@ -186,23 +177,8 @@ class GalleryFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         loadApiKeysFromSharedPreferences()
-        //loadCharacterCount()
     }
-    override fun onPause() {
-        super.onPause()
-        ///saveCharacterCount()
-    }
-    private fun loadCharacterCount() {
-        val sharedPreferences = requireActivity().getSharedPreferences("character_count", Context.MODE_PRIVATE)
-        val count = sharedPreferences.getString("count", "")
-        val characterCount: TextView = binding.elevenLabUsage
-        characterCount.text = characterCount.text.toString() + count
-    }
-    private fun saveCharacterCount() {
-        val sharedPreferences = requireActivity().getSharedPreferences("character_count", Context.MODE_PRIVATE)
-        val sessionsJson = Gson().toJson(sharedViewModel.characterCount.value)
-        sharedPreferences.edit().putString("count", sessionsJson).apply()
-    }
+
     private fun loadApiKeysFromSharedPreferences() {
         val sharedPreferences = requireActivity().getSharedPreferences("apikeys", Context.MODE_PRIVATE)
         val openAIKey = sharedPreferences.getString("openai_api_key", "")

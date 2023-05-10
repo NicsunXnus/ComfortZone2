@@ -327,44 +327,6 @@ class HomeFragment : Fragment(), RecognitionListener {
         Toast.makeText(requireContext(), "Chat saved.", Toast.LENGTH_SHORT).show()
     }
 
-    /*    fun saveChatSessions() {
-        val sharedPreferences = requireActivity().getSharedPreferences("chat_sessions", Context.MODE_PRIVATE)
-        val sessionsJson = Gson().toJson(sharedViewModel.chatSessions.value)
-        sharedPreferences.edit().putString("sessions", sessionsJson).apply()
-    }
-
-    // Call this method to load the chat sessions from SharedPreferences
-    fun loadChatSessions() {
-        val sessionsJson = requireActivity().getSharedPreferences("chat_sessions", Context.MODE_PRIVATE).getString("sessions", null)
-        if (sessionsJson != null) {
-            sharedViewModel.clearChatSessions()
-            val type = object : TypeToken<List<ChatSession>>() {}.type
-            val sessions = Gson().fromJson<List<ChatSession>>(sessionsJson, type)
-            for (i in sessions.indices) {
-                sharedViewModel.addChatSession(sessions[i].name,sessions[i].context,sessions[i].messages)
-            }
-        }
-    }*/
-
-    /*private fun saveMessagesList(messagesList: List<Message>) {
-        val sharedPreferences = requireActivity().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        val gson = Gson()
-        val json = gson.toJson(messagesList)
-        editor.putString("messagesList", json)
-        editor.apply()
-    }*/
-
-   /*private fun loadMessagesList(): MutableList<Message> {
-        val sharedPreferences = requireActivity().getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
-        val gson = Gson()
-        val json = sharedPreferences.getString("messagesList", null)
-        return if (json == null) {
-            mutableListOf()
-        } else {
-            gson.fromJson(json, object : TypeToken<MutableList<Message>>() {}.type)
-        }
-    }*/
 
     private fun showSessionOptionsDialog() {
         val items = arrayOf("Save current session", "Load another session")
@@ -401,33 +363,9 @@ class HomeFragment : Fragment(), RecognitionListener {
             .show()
     }
 
-    /*private fun loadAnotherSession() {
-        val sessions = sharedViewModel.chatSessions.value?.map { it.name }?.toTypedArray() ?: emptyArray()
-        AlertDialog.Builder(requireContext())
-            .setTitle("Load Another Session")
-            .setItems(sessions) { _, which ->
-                sharedViewModel.loadChatSession(sessions[which])
-                clearChat()
-                messagesList = sharedViewModel.currentSession.value?.messages?.toMutableList() ?: mutableListOf<Message>()
-                sharedViewModel.setContent(sharedViewModel.currentSession.value?.context?:"")
-                val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_change_system_message, null)
-                val systemMsgStore = dialogView.findViewById<TextView>(R.id.systemMsgDisplay)
-                systemMsgStore.text = sharedViewModel.currentSession.value?.context?:""
-                //Adds back the chat messages
-                for (i in messagesList.indices) {
-                    if (i % 2 != 0) {
-                        addMessageToChatContainer(messagesList[i].content, false)
-                    } else {
-                        addMessageToChatContainer(messagesList[i].content, true)
-                    }
-                }
-            }
-            .show()
-
-    }*/
 
     private fun loadAnotherSession() {
-        val sessions = sharedViewModel.chatSessions.value?.map { it.name }?.toMutableList() ?: mutableListOf<String>()
+        val sessions = sharedViewModel.chatSessions.value?.map { it.name }?.toMutableList() ?: mutableListOf()
 
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("Load Another Session")
@@ -440,7 +378,7 @@ class HomeFragment : Fragment(), RecognitionListener {
         sessionsListView.setOnItemClickListener { _, _, position, _ ->
             sharedViewModel.loadChatSession(sessions[position])
             clearChat()
-            messagesList = sharedViewModel.currentSession.value?.messages?.toMutableList() ?: mutableListOf<Message>()
+            messagesList = sharedViewModel.currentSession.value?.messages?.toMutableList() ?: mutableListOf()
             sharedViewModel.setContent(sharedViewModel.currentSession.value?.context?:"")
             //Adds back the chat messages
             for (i in messagesList.indices) {
@@ -475,25 +413,6 @@ class HomeFragment : Fragment(), RecognitionListener {
         builder.setNegativeButton("Cancel", null)
         builder.show()
     }
-    /*
-    private fun saveContext() {
-        val sharedPreferences = requireActivity().getSharedPreferences("context", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putString("context",sharedViewModel.systemMessageContent.value?:"")
-        editor.apply()
-    }
-    private fun loadContext() {
-        val sharedPreferences = requireActivity().getSharedPreferences("context", Context.MODE_PRIVATE)
-        val context = sharedPreferences.getString("context", "")
-
-        if (!context.isNullOrEmpty()) {
-            sharedViewModel.setContent(context)
-            val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_change_system_message, null)
-            val systemMsgStore = dialogView.findViewById<TextView>(R.id.systemMsgDisplay)
-            systemMsgStore.text = context
-        }
-    }
-    */
 
     // Call this method to save the chat sessions to SharedPreferences
     fun saveChatSessions() {
@@ -518,8 +437,6 @@ class HomeFragment : Fragment(), RecognitionListener {
     override fun onPause() {
         super.onPause()
         chatContainer.removeAllViews()
-        //saveMessagesList(messagesList)
-        //saveContext()
         saveChatSessions()
         saveChatHistory()
         val narrateIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.narrateIndicator)
@@ -538,16 +455,6 @@ class HomeFragment : Fragment(), RecognitionListener {
         loadChatSessions()
         loadChatHistory()
         messagesList.clear()
-        //messagesList.addAll(loadMessagesList())
-        //loadContext()
-        //Adds back the chat messages
-        /*for (i in messagesList.indices) {
-            if (i % 2 != 0) {
-                addMessageToChatContainerNoAnimation(messagesList[i].content, false)
-            } else {
-                addMessageToChatContainerNoAnimation(messagesList[i].content, true)
-            }
-        }*/
         val narrateIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.narrateIndicator)
         val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.typingIndicator2)
         val handsIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.handsTyping)
@@ -601,7 +508,6 @@ class HomeFragment : Fragment(), RecognitionListener {
 
     private fun typingAnimation(show : Boolean) {
         val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.handsTyping)
-        //typingIndicator.visibility = if (show) View.VISIBLE else View.GONE
         if (show) {
             typingIndicator.playAnimation()
         } else {
@@ -627,9 +533,6 @@ class HomeFragment : Fragment(), RecognitionListener {
                         reply?.let {
                             typingAnimation(true)
                             addMessageToChatContainer(it, false)
-                            //sharedViewModel.addCharacterCount(countCharacters(it))
-                            //sharedViewModel.characterCount.value?.let { it1 -> setCharacterCount(it1) }
-                            //addMessageToChatContainer("", false)
                             val lastSystemResponse = Message("system", reply)
                             messagesList.add(lastSystemResponse)
                             val voiceName =
@@ -656,25 +559,6 @@ class HomeFragment : Fragment(), RecognitionListener {
                         Toast.LENGTH_SHORT
                     ).show()
                 }
-                /*?: run {
-                    // Handle the case when there's no API key
-                    Toast.makeText(requireContext(), "No API key found, please set an API key. Using a backup api key now", Toast.LENGTH_SHORT).show()
-                    val chatGptResponse = fetchChatGptResponse(message, "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")
-                    chatGptResponse?.let { response ->
-                        val reply = response.choices.firstOrNull()?.message?.content?.trim()
-                        reply?.let {
-                            addMessageToChatContainer(it, false)
-                            // Add the previous system response, if available
-                            val lastSystemResponse = Message("system",reply)
-                            messagesList.add(lastSystemResponse)
-                            // Add this code inside the submitMessage() function, right after the line `addMessageToChatContainer(it, false)`
-                            val voiceName = spinnerVoice.selectedItem.toString().split(":")[1].trim()
-                            val narrateApiKey = sharedViewModel.elevenLabsApiKey.value ?: "a4d7726f7a83a1942e92ce4c0a283be9"
-                            generateVoiceOutput(it, voiceName, narrateApiKey)
-                        }
-                    }
-                }
-            }*/
             }
             updateRemainingCharacters()
         }
@@ -719,49 +603,10 @@ class HomeFragment : Fragment(), RecognitionListener {
             } ?: run {
                 // Handle the case when there's no API key
                 Toast.makeText(requireContext(), "No 11Lab API key found, please set an API key.", Toast.LENGTH_SHORT).show()
-                /*try {
-                    val apiService = Retrofit.Builder()
-                        .baseUrl("https://api.elevenlabs.io/")
-                        .client(okHttpClient)
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build()
-                        .create(getCharLimit::class.java)
-
-                    val response = apiService.getCharLim("a4d7726f7a83a1942e92ce4c0a283be9")
-
-                    if (response.isSuccessful) {
-                        val gson = Gson()
-                        val userInfo = response.body()?.string()
-                        val userInfoResponse = gson.fromJson(userInfo, GetUserResponse::class.java)
-                        val remainingCharacters =  userInfoResponse.subscription.character_limit
-
-                        remainingCharactersTextView.text = "Remaining characters: $remainingCharacters"
-                    } else {
-                        Log.e("HomeFragment", "Unsuccessful API response, code: ${response.code()}, errorBody: ${response.errorBody()}")
-                    }
-                } catch (e: Exception) {
-                    Log.e("HomeFragment", "Error during API call: ${e.message}")
-                }*/
             }
         }
     }
 
-    /*private fun addMessageToChatContainer(message: String, isUserMessage: Boolean) {
-        val textView = TextView(context).apply {
-            text = message
-            textSize = 18f
-            setBackgroundResource(if (isUserMessage) R.drawable.speech_bubble_background else R.drawable.speech_bubble_background_reply)
-            setPadding(16, 8, 16, 8) // Add padding around the text
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(8, 8, 8, 8) // Add margins between messages
-                gravity = if (isUserMessage) Gravity.START else Gravity.END
-            }
-        }
-        chatContainer.addView(textView)
-    }*/
     private fun showNarrateAnimation(show: Boolean) {
         val narrateIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.narrateIndicator)
         //typingIndicator.visibility = if (show) View.VISIBLE else View.GONE
@@ -773,7 +618,7 @@ class HomeFragment : Fragment(), RecognitionListener {
     }
     private fun showTypingAnimation2(show: Boolean) {
         val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.typingIndicator2)
-        //typingIndicator.visibility = if (show) View.VISIBLE else View.GONE
+
         if (show) {
             typingIndicator.playAnimation()
         } else {

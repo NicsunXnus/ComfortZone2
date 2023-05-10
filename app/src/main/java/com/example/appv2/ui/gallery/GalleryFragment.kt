@@ -19,6 +19,7 @@ import android.text.Spanned
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.widget.Button
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContentProviderCompat
 import com.airbnb.lottie.LottieAnimationView
@@ -48,20 +49,36 @@ class GalleryFragment : Fragment() {
         val openAIEditText: EditText = binding.editOpenaiApiKey
         val elevenLabEditText: EditText = binding.editElevenlabApiKey
 
-        openAIEditText.addTextChangedListener {
-            // Handle the OpenAI API key input here
-        }
-
-        elevenLabEditText.addTextChangedListener {
-            // Handle the ElevenLab API key input here
-        }
-
         val submitOpenAIButton: Button = binding.buttonSubmitOpenaiApiKey
         val submitElevenLabButton: Button = binding.buttonSubmitElevenlabApiKey
         val openAIKeyTextView: TextView = binding.textViewOpenaiApiKey
         val elevenLabKeyTextView: TextView = binding.textViewElevenlabApiKey
         val characterCount: TextView = binding.elevenLabUsage
         val elevenLabSwitch : TextView = binding.elevenLabSwitch
+
+        val clearApiKeysButton: Button = binding.clearApiKeysButton
+        clearApiKeysButton.setOnClickListener {
+            openAIKeyTextView.text = ""
+            elevenLabKeyTextView.text = ""
+            saveApiKeyToSharedPreferences("openai_api_key", "")
+            saveApiKeyToSharedPreferences("elevenlab_api_key", "")
+        }
+
+        openAIEditText.setOnClickListener {
+            clearApiKeysButton.visibility = View.GONE
+            Toast.makeText(requireContext(),"Click the white space to bring back the clear api keys button",Toast.LENGTH_SHORT).show()
+            true
+        }
+        elevenLabEditText.setOnClickListener {
+            clearApiKeysButton.visibility = View.GONE
+            Toast.makeText(requireContext(),"Click the white space to bring back the clear api keys button",Toast.LENGTH_SHORT).show()
+            true
+        }
+        root.setOnClickListener {
+            clearApiKeysButton.visibility = View.VISIBLE
+            true
+        }
+
         sharedViewModel.initCharacterCount(requireContext())
         if (sharedViewModel.characterCount.value == null) {
             sharedViewModel.addCharacterCount(0)
@@ -139,13 +156,7 @@ class GalleryFragment : Fragment() {
             movementMethod = LinkMovementMethod.getInstance()
         }
 
-        val clearApiKeysButton: Button = binding.clearApiKeysButton
-        clearApiKeysButton.setOnClickListener {
-            openAIKeyTextView.text = ""
-            elevenLabKeyTextView.text = ""
-            saveApiKeyToSharedPreferences("openai_api_key", "")
-            saveApiKeyToSharedPreferences("elevenlab_api_key", "")
-        }
+
 
         return root
     }

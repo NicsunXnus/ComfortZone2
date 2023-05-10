@@ -1,7 +1,6 @@
 package com.example.appv2.ui.home
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -48,13 +47,9 @@ import com.airbnb.lottie.LottieAnimationView
 import java.time.LocalDateTime
 
 import com.google.gson.*
-import kotlinx.coroutines.Job
 import java.lang.reflect.Type
 import java.time.format.DateTimeFormatter
 import java.util.*
-
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 
 class HomeFragment : Fragment(), RecognitionListener {
     private lateinit var editTextMessage: EditText
@@ -277,13 +272,6 @@ class HomeFragment : Fragment(), RecognitionListener {
         return root
     }
 
-    fun hideSoftKeyboard(activity: Activity) {
-        val inputMethodManager = activity.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        inputMethodManager.hideSoftInputFromWindow(activity.currentFocus?.windowToken, 0)
-    }
-
-    private fun View.hideKeyboard() = ViewCompat.getWindowInsetsController(this)
-        ?.hide(WindowInsetsCompat.Type.ime())
     class LocalDateTimeSerializer : JsonSerializer<LocalDateTime> {
         @RequiresApi(Build.VERSION_CODES.O)
         override fun serialize(src: LocalDateTime?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
@@ -639,8 +627,8 @@ class HomeFragment : Fragment(), RecognitionListener {
                         reply?.let {
                             typingAnimation(true)
                             addMessageToChatContainer(it, false)
-                            sharedViewModel.addCharacterCount(countCharacters(it))
-                            sharedViewModel.characterCount.value?.let { it1 -> setCharacterCount(it1) }
+                            //sharedViewModel.addCharacterCount(countCharacters(it))
+                            //sharedViewModel.characterCount.value?.let { it1 -> setCharacterCount(it1) }
                             //addMessageToChatContainer("", false)
                             val lastSystemResponse = Message("system", reply)
                             messagesList.add(lastSystemResponse)
@@ -719,7 +707,7 @@ class HomeFragment : Fragment(), RecognitionListener {
                         val gson = Gson()
                         val userInfo = response.body()?.string()
                         val userInfoResponse = gson.fromJson(userInfo, GetUserResponse::class.java)
-                        val remainingCharacters =  userInfoResponse.subscription.character_limit
+                        val remainingCharacters =  userInfoResponse.subscription.character_limit - getCharacterCount()
 
                         remainingCharactersTextView.text = "Remaining characters: $remainingCharacters"
                     } else {
@@ -914,6 +902,8 @@ class HomeFragment : Fragment(), RecognitionListener {
             try {
                 val response = narrateApiService.generateVoice(voiceName, apiKey, requestBody)
                 if (response.isSuccessful) {
+                    sharedViewModel.addCharacterCount(countCharacters(text))
+                    sharedViewModel.characterCount.value?.let { it1 -> setCharacterCount(it1) }
                     val audioBytes = response.body()?.bytes()
                     audioBytes?.let {
                         val tempFile =

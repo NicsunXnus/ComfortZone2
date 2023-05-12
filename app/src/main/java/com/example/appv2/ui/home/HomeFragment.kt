@@ -42,7 +42,6 @@ import android.widget.ArrayAdapter
 import android.widget.ListView
 import androidx.annotation.RequiresApi
 
-
 import com.airbnb.lottie.LottieAnimationView
 import java.time.LocalDateTime
 
@@ -67,6 +66,8 @@ class HomeFragment : Fragment(), RecognitionListener {
     private lateinit var voiceToTextButton: Button
     private lateinit var speechRecognizer: SpeechRecognizer
     private var handler: Handler? = null
+    private var hasClicked: Boolean? = false
+
 
     override fun onReadyForSpeech(params: Bundle?) {}
     override fun onBeginningOfSpeech() {}
@@ -134,11 +135,24 @@ class HomeFragment : Fragment(), RecognitionListener {
         }
 
         updateRemainingCharacters()
-
+        saveChatButton = root.findViewById(R.id.fab_save_chat)
+        fab = root.findViewById(R.id.fab)
+        manageSessionsFab = root.findViewById(R.id.manageSessionsFab)
         chatContainer.setOnLongClickListener {
-            Toast.makeText(requireContext(), "The Chat Box", Toast.LENGTH_SHORT).show()
+            if (!hasClicked!!) {
+                saveChatButton.alpha = 0.3f
+                fab.alpha = 0.3f
+                manageSessionsFab.alpha = 0.3f
+                hasClicked = true
+            } else {
+                saveChatButton.alpha = 1f
+                fab.alpha = 1f
+                manageSessionsFab.alpha = 1f
+                hasClicked = false
+            }
             true
         }
+
         val onClickListener = View.OnClickListener { view ->
             // Hide keyboard
             val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -146,9 +160,9 @@ class HomeFragment : Fragment(), RecognitionListener {
 
             // Start loader to check parameters...
         }
+
         chatContainer.setOnClickListener(onClickListener)
 
-        fab = root.findViewById(R.id.fab)
         fab.setOnClickListener {
             clearChat()
             val snackbar = Snackbar.make(root, "Chat cleared", Snackbar.LENGTH_SHORT)
@@ -164,7 +178,7 @@ class HomeFragment : Fragment(), RecognitionListener {
 
         sharedViewModel.initCharacterCount(requireContext())
 
-        manageSessionsFab = root.findViewById(R.id.manageSessionsFab)
+
         manageSessionsFab.setOnClickListener { showSessionOptionsDialog() }
 
         CoroutineScope(Dispatchers.Main).launch {
@@ -204,10 +218,11 @@ class HomeFragment : Fragment(), RecognitionListener {
             true
         }
 
-        saveChatButton = root.findViewById(R.id.fab_save_chat)
+
         saveChatButton.setOnClickListener {
             saveCurrentChat()
         }
+
 
         buttonGetVoices.setOnClickListener {
             // Your logic to fetch the voices and display them

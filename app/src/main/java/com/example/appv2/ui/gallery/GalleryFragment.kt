@@ -106,6 +106,21 @@ class GalleryFragment : Fragment() {
             true
         }
 
+        characterCount.setOnClickListener {
+            val editText = EditText(requireContext())
+            AlertDialog.Builder(requireContext())
+                .setTitle("Change Character Count")
+                .setMessage("Do you wish to edit?")
+                .setView(editText)
+                .setPositiveButton("Yes") { _, _ ->
+                    setCharacterCount(editText.text.toString().toInt())
+                    characterCount.text = "Character Count: " + editText.text.toString()
+                }
+                .setNegativeButton("No", null)
+                .show()
+            true
+        }
+
         submitElevenLabButton.setOnClickListener {
             val elevenLabKey = binding.editElevenlabApiKey.text.toString()
             passElevenLabKey(elevenLabKey)

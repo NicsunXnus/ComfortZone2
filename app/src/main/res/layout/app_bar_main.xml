@@ -18,6 +18,18 @@
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/Theme.App.PopupOverlay">
 
+            <com.airbnb.lottie.LottieAnimationView
+                android:id="@+id/narrateIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="visible"
+                android:alpha="0.3"
+                app:lottie_autoPlay="false"
+                app:layout_constraintEnd_toStartOf="@+id/handsTyping"
+                app:lottie_fileName="audio_waves.json"
+                app:lottie_loop="true"
+                app:lottie_speed="1" />
+
             <FrameLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
@@ -26,27 +38,20 @@
                     android:id="@+id/typingIndicator2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:alpha="0.3"
                     android:visibility="visible"
                     app:lottie_autoPlay="false"
                     app:lottie_fileName="cycling.json"
                     app:lottie_loop="true"
                     app:lottie_speed="1" />
 
-                    <com.airbnb.lottie.LottieAnimationView
-                        android:id="@+id/narrateIndicator"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:visibility="visible"
-                        app:lottie_autoPlay="false"
-                        app:lottie_fileName="speaker.json"
-                        app:lottie_loop="true"
-                        app:lottie_speed="1" />
 
                 <com.airbnb.lottie.LottieAnimationView
                     android:id="@+id/handsTyping"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginRight="160dp"
+                    android:alpha="0.3"
                     android:visibility="visible"
                     app:lottie_autoPlay="false"
                     app:lottie_fileName="hands_typing.json"

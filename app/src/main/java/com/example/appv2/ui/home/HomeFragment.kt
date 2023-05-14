@@ -504,6 +504,8 @@ class HomeFragment : Fragment(), RecognitionListener {
         fab.alpha = 0.3f
         manageSessionsFab.alpha = 0.3f
         saveChatButton.alpha = 0.3f
+        val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.handsTyping)
+        typingIndicator.alpha = 1f
         var index = 0
         val animDuration = 40L // Duration for each character animation in milliseconds
         handler = Handler(Looper.getMainLooper())
@@ -523,10 +525,13 @@ class HomeFragment : Fragment(), RecognitionListener {
 
     private fun typingAnimation(show : Boolean) {
         val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.handsTyping)
+        typingIndicator.alpha = 1f
         if (show) {
+
             typingIndicator.playAnimation()
         } else {
             typingIndicator.cancelAnimation()
+            typingIndicator.alpha - 0.3f
         }
     }
 
@@ -554,6 +559,7 @@ class HomeFragment : Fragment(), RecognitionListener {
                                 spinnerVoice.selectedItem.toString().split(":")[1].trim()
                             val narrateApiKey = sharedViewModel.elevenLabsApiKey.value
                                 ?: "No Key"
+
                             if (narrateApiKey == "No Key") {
                                 Toast.makeText(
                                     requireContext(),
@@ -561,6 +567,7 @@ class HomeFragment : Fragment(), RecognitionListener {
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
+
                             showNarrateAnimation(true)
                             generateVoiceOutput(it, voiceName, narrateApiKey) {
                                 showNarrateAnimation(false)
@@ -624,20 +631,24 @@ class HomeFragment : Fragment(), RecognitionListener {
 
     private fun showNarrateAnimation(show: Boolean) {
         val narrateIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.narrateIndicator)
-        //typingIndicator.visibility = if (show) View.VISIBLE else View.GONE
-        if (show) {
+
+        if (show and (sharedViewModel.useElevenLabApiKey.value == true)) {
+            narrateIndicator.alpha = 1f
             narrateIndicator.playAnimation()
+
         } else {
             narrateIndicator.cancelAnimation()
+            narrateIndicator.alpha = 0.3f
         }
     }
     private fun showTypingAnimation2(show: Boolean) {
         val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.typingIndicator2)
-
+        typingIndicator.alpha = 1f
         if (show) {
             typingIndicator.playAnimation()
         } else {
             typingIndicator.cancelAnimation()
+            typingIndicator.alpha = 0.3f
         }
     }
 
@@ -667,6 +678,8 @@ class HomeFragment : Fragment(), RecognitionListener {
                 fab.alpha = 1f
                 manageSessionsFab.alpha = 1f
                 saveChatButton.alpha = 1f
+                val typingIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.handsTyping)
+                typingIndicator.alpha = 0.3f
             }
 
         }
@@ -798,6 +811,7 @@ class HomeFragment : Fragment(), RecognitionListener {
             }
         } else {
             val voiceIndicator =  requireActivity().findViewById<LottieAnimationView>(R.id.narrateIndicator)
+            voiceIndicator.alpha = 0.3f
             voiceIndicator.cancelAnimation()
         }
     }
